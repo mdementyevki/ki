@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>День 1 — Опора | Кинетический интеллект</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --bg-deep:#020e24; --bg-dark:#061528; --bg-card:#0a1e38; --bg-panel:#091a30;
+  --bg-light:#ffffff; --bg-light-warm:#f7f8fc; --bg-light-muted:#eef1f8;
+  --blue:#0575a6; --blue-h:#0093d5; --blue-b:#00aaef;
+  --blue-soft:rgba(5,117,166,.15); --blue-g:linear-gradient(135deg,#0575a6,#0093d5);
+  --coral:#d76060; --coral-d:#972322;
+  --coral-g:linear-gradient(180deg,#d76060,#972322);
+  --coral-glow:rgba(215,96,96,.3); --coral-soft:rgba(215,96,96,.12);
+  --crimson:#7A1530; --crimson-glow:rgba(160,30,50,.4); --wine:#8B1A2B;
+  --green:#00920a; --green-soft:rgba(0,146,10,.15);
+  --tw:#fff; --tp:#E8ECF4; --ts:#8BA3C7; --tm:#4A6380;
+  --td:#0A1628; --tds:#3A5070; --tdm:#7A8EA8;
+  --bdr:rgba(5,117,166,.15); --bda:rgba(5,117,166,.4); --bdl:rgba(10,22,40,.08);
+  --r4:5px; --r8:10px; --r16:20px; --r32:40px;
+  --font:'Manrope',Arial,sans-serif;
+  --sh-blue:0 0 40px rgba(5,117,166,.3);
+  --sh-card:0 4px 24px rgba(2,14,36,.35);
+  --sh-light:0 2px 16px rgba(10,22,40,.06);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg-deep);color:var(--tp);font-family:var(--font);line-height:1.6;font-weight:500;}
+
+/* ── PROGRESS HEADER ─────────────────────────────── */
+#prog-header {
+  position:fixed; top:0; left:0; right:0; z-index:200;
+  background:rgba(2,14,36,.92);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--bdr);
+  padding:0 24px;
+}
+.prog-top {
+  max-width:860px; margin:0 auto;
+  display:flex; align-items:center; gap:14px;
+  height:56px;
+}
+.prog-logo {
+  font-size:10px; font-weight:800; text-transform:uppercase;
+  letter-spacing:2px; color:var(--tm); white-space:nowrap; flex-shrink:0;
+}
+.prog-logo span { color:var(--blue-b); }
+.prog-bar-wrap { flex:1; }
+.prog-track {
+  height:4px; background:rgba(5,117,166,.15);
+  border-radius:2px; overflow:hidden;
+}
+.prog-fill-bar {
+  height:100%; border-radius:2px;
+  background:linear-gradient(90deg,#0575a6,#00aaef);
+  transition:width .5s cubic-bezier(.4,0,.2,1);
+  width:0%;
+}
+.prog-steps-row {
+  display:flex; gap:5px; margin-top:5px;
+  max-width:860px; margin:5px auto 0;
+  padding:0 0 8px;
+}
+.prog-dot {
+  flex:1; height:3px; border-radius:2px;
+  background:rgba(5,117,166,.12);
+  transition:background .4s;
+  cursor:pointer;
+  position:relative;
+}
+.prog-dot.done { background:var(--blue-h); }
+.prog-dot.active { background:var(--blue-b); box-shadow:0 0 6px var(--blue-b); }
+.prog-dot:hover::after {
+  content:attr(data-label);
+  position:absolute; bottom:8px; left:50%;
+  transform:translateX(-50%);
+  background:var(--bg-card);
+  border:1px solid var(--bda);
+  color:var(--ts); font-size:10px; font-weight:700;
+  padding:3px 8px; border-radius:var(--r4);
+  white-space:nowrap; pointer-events:none;
+}
+.prog-counter {
+  font-size:11px; font-weight:800; color:var(--tm);
+  white-space:nowrap; flex-shrink:0;
+}
+.prog-counter span { color:var(--blue-b); }
+
+/* ── STAGE CONTAINER ─────────────────────────────── */
+#stage {
+  position:fixed; top:80px; left:0; right:0; bottom:0;
+  overflow:hidden;
+}
+
+/* ── CARD ────────────────────────────────────────── */
+.card {
+  position:absolute; inset:0;
+  overflow-y:auto;
+  opacity:0; pointer-events:none;
+  transform:translateX(60px);
+  transition:opacity .35s cubic-bezier(.4,0,.2,1),
+             transform .35s cubic-bezier(.4,0,.2,1);
+}
+.card.active {
+  opacity:1; pointer-events:all;
+  transform:translateX(0);
+}
+.card.exit-left {
+  opacity:0; pointer-events:none;
+  transform:translateX(-60px);
+  transition:opacity .3s cubic-bezier(.4,0,.2,1),
+             transform .3s cubic-bezier(.4,0,.2,1);
+}
+
+.card-inner {
+  max-width:640px; margin:0 auto;
+  padding:32px 24px 120px;
+}
+
+/* ── CATEGORY BADGE ──────────────────────────────── */
+.cat-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:4px 12px; border-radius:var(--r32);
+  font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:1.5px;
+  margin-bottom:16px;
+}
+.cat-badge.theory { background:var(--blue-soft); color:var(--blue-b); border:1px solid var(--bda); }
+.cat-badge.practice { background:var(--coral-soft); color:var(--coral); border:1px solid rgba(215,96,96,.25); }
+.cat-badge.task { background:var(--green-soft); color:#4ade80; border:1px solid rgba(0,146,10,.25); }
+.cat-badge.life { background:rgba(122,21,48,.15); color:#c06080; border:1px solid rgba(122,21,48,.2); }
+
+/* ── CARD HEADING ────────────────────────────────── */
+.card-h {
+  font-size:28px; font-weight:800; text-transform:uppercase;
+  line-height:1.1; color:var(--tw); margin-bottom:6px;
+}
+.card-h span { color:var(--blue-b); }
+.card-h.hero-h {
+  font-size:52px; letter-spacing:1px; margin-bottom:4px;
+}
+@media(max-width:480px){ .card-h.hero-h{ font-size:36px; } }
+  font-size:15px; color:var(--ts); line-height:1.7; margin-bottom:24px;
+}
+.c-line { display:block; width:50px; height:3px; background:var(--crimson); margin:10px 0 22px; }
+
+/* ── QUOTE ───────────────────────────────────────── */
+.q-block {
+  border-left:3px solid var(--blue-b);
+  padding:16px 20px; background:var(--bg-card);
+  border-radius:0 var(--r16) var(--r16) 0;
+  margin-bottom:18px;
+}
+.q-block.coral { border-left-color:var(--coral); }
+.q-text { font-size:15px; font-style:italic; color:var(--tp); line-height:1.7; margin-bottom:5px; }
+.q-src { font-size:11px; font-weight:700; color:var(--tm); text-transform:uppercase; letter-spacing:1px; }
+
+/* ── INSIGHT BOX ─────────────────────────────────── */
+.insight {
+  text-align:center; padding:28px 24px;
+  background:linear-gradient(135deg,var(--bg-card) 0%,rgba(5,117,166,.1) 100%);
+  border-radius:var(--r16); border:1px solid var(--bda);
+  margin-bottom:20px;
+}
+.insight .it { font-size:20px; font-weight:800; text-transform:uppercase; line-height:1.35; color:var(--tw); margin-bottom:7px; }
+.insight .it span { color:var(--blue-b); }
+.insight .is { font-size:14px; color:var(--ts); }
+
+/* ── TAP QUESTION (первое действие) ─────────────── */
+.tap-q {
+  background:var(--bg-card);
+  border:1.5px solid var(--bda);
+  border-radius:var(--r16); padding:22px 20px;
+  margin-bottom:18px;
+}
+.tap-q .tq-label {
+  font-size:12px; font-weight:700; text-transform:uppercase;
+  letter-spacing:1.5px; color:var(--blue-b); margin-bottom:12px;
+}
+.tap-q .tq-text { font-size:16px; font-weight:700; color:var(--tw); line-height:1.5; margin-bottom:16px; }
+.tap-options { display:flex; flex-direction:column; gap:8px; }
+.tap-opt {
+  padding:12px 16px; border-radius:var(--r8);
+  border:1.5px solid var(--bdr); background:var(--bg-panel);
+  font-family:var(--font); font-size:14px; font-weight:600; color:var(--ts);
+  cursor:pointer; text-align:left; transition:all .18s;
+}
+.tap-opt:hover { border-color:var(--blue-h); color:var(--tp); background:var(--blue-soft); }
+.tap-opt.chosen { border-color:var(--blue-b); color:var(--blue-b); background:var(--blue-soft); }
+.tap-result {
+  margin-top:12px; padding:12px 16px; border-radius:var(--r8);
+  background:rgba(0,170,239,.08); border:1px solid var(--bda);
+  font-size:14px; color:var(--ts); line-height:1.6;
+  display:none; animation:fadeUp .25s ease both;
+}
+.tap-result.show { display:block; }
+.tap-result strong { color:var(--blue-b); }
+
+/* ── MIXER ───────────────────────────────────────── */
+.mixer-wrap {
+  background:var(--bg-panel); border:1px solid var(--bdr);
+  border-radius:var(--r16); padding:20px 16px 16px;
+  margin-bottom:18px; overflow-x:auto;
+}
+.mixer-title { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--tm); text-align:center; margin-bottom:18px; }
+.mixer-board { display:flex; gap:6px; justify-content:center; align-items:flex-end; min-width:380px; }
+.fader-ch { display:flex; flex-direction:column; align-items:center; width:56px; cursor:pointer; opacity:.5; transition:opacity .2s; }
+.fader-ch.active,.fader-ch:hover { opacity:1; }
+.fader-ch.active .fader-fill { background:linear-gradient(180deg,#00aaef,#0575a6); }
+.fader-ch.active .fader-grip { background:var(--blue-b); border-color:var(--blue-b); }
+.fader-ch.active .fader-led { background:var(--blue-b); box-shadow:0 0 6px var(--blue-b); }
+.fader-ch.active .fader-label,.fader-ch.active .fader-db { color:var(--blue-b); }
+.fader-db { font-size:9px; font-weight:700; color:var(--tm); text-align:center; margin-bottom:3px; height:13px; }
+.fader-track { width:6px; background:var(--bg-deep); border-radius:3px; height:80px; position:relative; border:1px solid rgba(5,117,166,.18); margin:0 auto 5px; }
+.fader-fill { position:absolute; bottom:0; left:0; right:0; border-radius:3px; background:rgba(5,117,166,.25); transition:height .4s; }
+.fader-grip { position:absolute; left:50%; transform:translateX(-50%); width:22px; height:8px; background:var(--bg-card); border:1.5px solid var(--bda); border-radius:3px; transition:bottom .4s; }
+.fader-body { width:44px; background:var(--bg-card); border:1px solid var(--bdr); border-radius:var(--r8); padding:5px 4px; text-align:center; margin-bottom:4px; transition:border-color .2s; }
+.fader-ch.active .fader-body { border-color:var(--blue-b); }
+.fader-led { width:7px; height:7px; border-radius:50%; background:var(--tm); margin:0 auto 2px; }
+.fader-ch-n { font-size:8px; font-weight:700; color:var(--tm); }
+.fader-label { font-size:9px; font-weight:800; color:var(--tm); text-transform:uppercase; text-align:center; line-height:1.2; margin-bottom:2px; }
+.fader-day { font-size:8px; color:rgba(74,99,128,.6); text-align:center; }
+.mixer-desc { margin-top:12px; padding-top:11px; border-top:1px solid var(--bdr); font-size:13px; color:var(--ts); text-align:center; line-height:1.6; min-height:36px; }
+.mixer-desc strong { color:var(--blue-b); }
+
+/* ── TRIPOD ──────────────────────────────────────── */
+.tripod-wrap { background:var(--bg-card); border:1px solid var(--bdr); border-radius:var(--r16); padding:20px 16px; margin-bottom:18px; text-align:center; position:relative; }
+.tripod-svg-wrap { position:relative; display:inline-block; max-width:260px; width:100%; }
+.tripod-svg-wrap svg { width:100%; }
+.tripod-point { cursor:pointer; }
+.tripod-point:hover circle.inner { filter:brightness(1.4); }
+.t-tip { display:none; position:absolute; background:var(--bg-card); border:1.5px solid var(--bda); border-radius:var(--r8); padding:13px 15px; text-align:left; width:185px; z-index:50; box-shadow:var(--sh-card); }
+.t-tip.show { display:block; animation:fadeUp .2s ease; }
+.t-tip h5 { font-size:12px; font-weight:800; text-transform:uppercase; margin-bottom:4px; }
+.t-tip p { font-size:12px; color:var(--ts); line-height:1.5; }
+.t-tip .tt-tag { display:inline-block; margin-top:6px; padding:2px 9px; border-radius:20px; font-size:9px; font-weight:700; background:var(--blue-soft); color:var(--blue-b); text-transform:uppercase; }
+.tripod-hint { font-size:12px; color:var(--tm); margin-top:8px; font-style:italic; }
+
+/* ── TRY NOW (micro-action inside theory) ────────── */
+.try-now {
+  background:linear-gradient(135deg,rgba(5,117,166,.12),rgba(5,117,166,.04));
+  border:1.5px solid var(--bda); border-radius:var(--r16);
+  padding:18px 20px; margin-bottom:18px;
+}
+.try-now .tn-label { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:2px; color:var(--blue-b); margin-bottom:8px; }
+.try-now .tn-text { font-size:15px; font-weight:700; color:var(--tw); line-height:1.5; margin-bottom:14px; }
+.tn-btn {
+  display:inline-flex; align-items:center; gap:7px;
+  padding:10px 20px; border-radius:var(--r32);
+  background:var(--blue-g); color:white;
+  font-family:var(--font); font-size:13px; font-weight:800;
+  text-transform:uppercase; letter-spacing:.5px;
+  border:none; cursor:pointer; transition:opacity .2s;
+}
+.tn-btn:hover { opacity:.85; }
+.tn-btn.done { background:linear-gradient(135deg,#00920a,#00b30d); }
+.tn-reply { margin-top:12px; font-size:14px; color:var(--ts); line-height:1.6; display:none; animation:fadeUp .25s ease; }
+.tn-reply.show { display:block; }
+.tn-reply strong { color:#4ade80; }
+
+/* ── STATES ──────────────────────────────────────── */
+.states-nav { display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap; }
+.st-btn { flex:1; min-width:90px; padding:8px 10px; border-radius:var(--r8); border:1.5px solid var(--bdr); background:var(--bg-panel); font-family:var(--font); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--tm); cursor:pointer; transition:all .18s; }
+.st-btn:hover { border-color:var(--blue-h); color:var(--ts); }
+.st-btn.on { background:var(--blue-soft); border-color:var(--blue-h); color:var(--blue-b); }
+.st-btn.def.on { background:rgba(215,96,96,.1); border-color:var(--coral); color:var(--coral); }
+.st-btn.exc.on { background:rgba(122,21,48,.15); border-color:#a04060; color:#c06080; }
+.st-btn.mid.on { background:var(--green-soft); border-color:var(--green); color:#4ade80; }
+.st-panel { background:var(--bg-card); border-radius:var(--r16); padding:20px 22px; border:1px solid var(--bdr); display:none; margin-bottom:18px; }
+.st-panel.show { display:block; animation:fadeUp .2s ease; }
+.st-icon { font-size:24px; margin-bottom:8px; }
+.st-panel h4 { font-size:14px; font-weight:800; text-transform:uppercase; margin-bottom:6px; }
+.st-panel p { font-size:14px; color:var(--ts); line-height:1.7; }
+.st-impr { margin-top:10px; padding:8px 12px; border-radius:var(--r8); font-size:13px; font-weight:600; color:var(--ts); }
+
+/* ── COMPARE TABLE ───────────────────────────────── */
+.cmp-table { width:100%; border-collapse:separate; border-spacing:0; border-radius:var(--r16); overflow:hidden; border:1px solid var(--bdr); margin-bottom:18px; }
+.cmp-table th { background:var(--bg-card); padding:11px 14px; text-align:left; font-size:11px; font-weight:800; color:var(--tw); border-bottom:2px solid var(--blue-h); text-transform:uppercase; letter-spacing:.8px; }
+.cmp-table th.hl { background:var(--blue-soft); color:var(--blue-b); border-bottom-color:var(--blue-b); }
+.cmp-table td { padding:10px 14px; font-size:13px; color:var(--ts); border-bottom:1px solid var(--bdr); background:var(--bg-dark); font-weight:500; }
+.cmp-table tr:last-child td { border-bottom:none; }
+.cmp-table td.hl { background:rgba(5,117,166,.06); }
+
+/* ── SCIENCE ─────────────────────────────────────── */
+.sci { background:var(--bg-panel); border:1px solid var(--bdr); border-radius:var(--r16); padding:16px 20px; margin-bottom:14px; display:flex; gap:13px; align-items:flex-start; }
+.sci-ic { width:34px; height:34px; min-width:34px; border-radius:var(--r8); background:var(--blue-soft); border:1px solid var(--bda); display:flex; align-items:center; justify-content:center; font-size:15px; }
+.sci h4 { font-size:12px; font-weight:800; color:var(--tp); text-transform:uppercase; margin-bottom:4px; }
+.sci p { font-size:13px; color:var(--ts); line-height:1.6; }
+
+/* ── TASK STEPS ──────────────────────────────────── */
+.task-steps { background:var(--bg-card); border:1.5px solid var(--bda); border-radius:var(--r16); overflow:hidden; margin-bottom:16px; }
+.ts-head { background:linear-gradient(90deg,rgba(5,117,166,.12),transparent); padding:13px 18px; display:flex; align-items:center; gap:10px; border-bottom:1px solid var(--bdr); }
+.ts-num { width:30px; height:30px; min-width:30px; border-radius:50%; background:var(--blue-g); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; color:#fff; }
+.ts-head h3 { font-size:13px; font-weight:800; color:var(--tw); text-transform:uppercase; }
+.ts-time { margin-left:auto; font-size:11px; font-weight:700; color:var(--tm); padding:2px 8px; background:var(--bg-panel); border-radius:20px; }
+.ts-body { padding:14px 18px; }
+.ts-step { display:flex; gap:10px; margin-bottom:10px; }
+.ts-n { width:20px; height:20px; min-width:20px; border-radius:var(--r4); background:var(--wine); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:#fff; margin-top:2px; }
+.ts-step p { font-size:14px; color:var(--ts); line-height:1.6; }
+.ts-step p strong { color:var(--tp); font-weight:700; }
+
+/* ── WORKBOOK FIELDS ─────────────────────────────── */
+.wb-wrap { background:var(--bg-light); border-radius:var(--r16); overflow:hidden; border:1px solid var(--bdl); box-shadow:var(--sh-light); margin-bottom:18px; color:var(--td); }
+.wb-head { background:var(--bg-light-warm); padding:12px 18px; border-bottom:1px solid var(--bdl); display:flex; align-items:center; justify-content:space-between; }
+.wb-head-t { font-size:13px; font-weight:700; color:var(--td); display:flex; align-items:center; gap:8px; }
+.wb-badge { font-size:10px; font-weight:700; padding:2px 9px; border-radius:20px; background:var(--blue); color:#fff; text-transform:uppercase; }
+.wb-badge.c { background:var(--coral-d); }
+.wb-body { padding:18px; }
+.wb-f { margin-bottom:14px; }
+.wb-f label { display:block; font-size:11px; font-weight:700; color:var(--blue); text-transform:uppercase; letter-spacing:.5px; margin-bottom:5px; }
+.wb-f textarea { width:100%; min-height:68px; border:1.5px solid #d0d8e8; border-radius:var(--r8); padding:9px 12px; font-family:var(--font); font-size:14px; color:var(--td); background:var(--bg-light-warm); resize:vertical; outline:none; transition:border-color .2s; }
+.wb-f textarea:focus { border-color:var(--blue); }
+.wb-f textarea::placeholder { color:var(--tdm); font-style:italic; }
+.wb-hint { font-size:12px; color:var(--tdm); margin-top:4px; font-style:italic; }
+
+/* ── SCALE ───────────────────────────────────────── */
+.scale-nums { display:flex; gap:4px; flex-wrap:wrap; }
+.sn { width:32px; height:32px; border-radius:var(--r8); border:1.5px solid #d0d8e8; background:var(--bg-light-warm); font-family:var(--font); font-size:13px; font-weight:800; color:var(--tdm); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; }
+.sn:hover { border-color:var(--blue); color:var(--blue); }
+.sn.on { background:var(--blue); border-color:var(--blue); color:#fff; }
+.scale-res { margin-top:9px; font-size:14px; font-weight:600; color:var(--tds); display:none; padding:9px 12px; background:#eef8ff; border-radius:var(--r8); border-left:3px solid var(--blue); }
+.scale-res.show { display:block; animation:fadeUp .25s ease; }
+
+/* ── CHECKLIST ───────────────────────────────────── */
+.ck-list { list-style:none; }
+.ck-item { display:flex; align-items:flex-start; gap:10px; padding:9px 0; border-bottom:1px solid var(--bdl); font-size:14px; font-weight:500; color:var(--td); cursor:pointer; user-select:none; transition:opacity .2s; }
+.ck-item:last-child { border-bottom:none; }
+.ck-item.done { opacity:.45; text-decoration:line-through; color:var(--tdm); }
+.ck-box { width:21px; height:21px; min-width:21px; border-radius:5px; border:2px solid var(--blue); display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; transition:background .15s; }
+.ck-box.on { background:var(--blue); }
+.ck-box.on::after { content:'✓'; color:#fff; font-size:11px; font-weight:800; }
+
+/* ── CONCEPT CARDS ───────────────────────────────── */
+.cc { background:var(--bg-card); border:1px solid var(--bda); border-radius:var(--r16); padding:18px 22px; margin-bottom:14px; position:relative; overflow:hidden; transition:box-shadow .2s; }
+.cc::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--blue-g); }
+.cc:hover { box-shadow:var(--sh-blue); }
+.cc .cn { width:32px; height:32px; border-radius:var(--r8); background:var(--wine); color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; margin-bottom:9px; }
+.cc h3 { font-size:14px; font-weight:800; color:var(--tw); text-transform:uppercase; margin-bottom:5px; }
+.cc p { font-size:13px; color:var(--ts); line-height:1.7; }
+
+/* ── PROG BARS ───────────────────────────────────── */
+.pb-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.pb-label { font-size:12px; font-weight:700; color:var(--tp); width:110px; text-transform:uppercase; flex-shrink:0; }
+.pb-track { flex:1; height:8px; background:var(--bg-panel); border-radius:4px; overflow:hidden; }
+@keyframes fillBar{from{width:0;}}
+.pb-fill { height:100%; border-radius:4px; background:var(--blue-g); animation:fillBar 1.2s ease both; animation-delay:.3s; }
+.pb-fill.c { background:linear-gradient(90deg,var(--coral-d),var(--coral)); }
+.pb-pct { font-size:12px; font-weight:800; color:var(--blue-b); width:36px; text-align:right; }
+
+/* ── FOCUS GRID ──────────────────────────────────── */
+.focus-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:18px; }
+.fc { background:var(--bg-card); border:1px solid var(--bdr); border-radius:var(--r16); padding:16px 14px; transition:border-color .2s,box-shadow .2s; }
+.fc:hover { border-color:var(--bda); box-shadow:var(--sh-blue); }
+.fc .fe { font-size:22px; margin-bottom:8px; }
+.fc h4 { font-size:12px; font-weight:800; color:var(--tw); text-transform:uppercase; margin-bottom:5px; }
+.fc p { font-size:13px; color:var(--ts); line-height:1.6; }
+
+/* ── EXPORT ──────────────────────────────────────── */
+.export-box { background:var(--bg-light-warm); border:1.5px dashed #b0c4d8; border-radius:var(--r16); padding:18px 20px; margin-bottom:16px; color:var(--td); }
+.export-box h4 { font-size:13px; font-weight:800; color:var(--td); text-transform:uppercase; margin-bottom:6px; }
+.export-box p { font-size:13px; color:var(--tds); line-height:1.6; margin-bottom:11px; }
+.exp-btns { display:flex; gap:8px; flex-wrap:wrap; }
+.exp-btn { display:inline-flex; align-items:center; gap:6px; padding:9px 14px; border-radius:var(--r8); font-family:var(--font); font-size:12px; font-weight:700; cursor:pointer; border:none; transition:all .15s; }
+.exp-btn.cp { background:var(--blue); color:#fff; } .exp-btn.cp:hover { background:var(--blue-h); }
+.exp-btn.pr { background:#fff; color:var(--td); border:1.5px solid #c0d0e0; } .exp-btn.pr:hover { border-color:var(--blue); }
+.cp-ok { font-size:12px; color:var(--green); font-weight:700; margin-top:7px; display:none; }
+.cp-ok.show { display:block; }
+
+/* ── CELEBRATION ─────────────────────────────────── */
+.celebration {
+  text-align:center; padding:32px 20px;
+  background:linear-gradient(135deg,rgba(0,146,10,.1),rgba(5,117,166,.1));
+  border:1.5px solid rgba(0,146,10,.3);
+  border-radius:var(--r16); margin-bottom:18px;
+  animation:celebPop .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes celebPop { from{opacity:0;transform:scale(.85);} to{opacity:1;transform:scale(1);} }
+.celebration .cel-emoji { font-size:48px; margin-bottom:12px; display:block; animation:bounce 1s ease infinite alternate; }
+@keyframes bounce { from{transform:translateY(0);} to{transform:translateY(-8px);} }
+.celebration h3 { font-size:20px; font-weight:800; text-transform:uppercase; color:var(--tw); margin-bottom:8px; }
+.celebration p { font-size:14px; color:var(--ts); line-height:1.6; }
+
+/* ── FOOTER NAV ──────────────────────────────────── */
+#foot-nav {
+  position:fixed; bottom:0; left:0; right:0; z-index:200;
+  background:rgba(2,14,36,.95); backdrop-filter:blur(12px);
+  border-top:1px solid var(--bdr);
+  padding:12px 24px;
+}
+.foot-inner {
+  max-width:640px; margin:0 auto;
+  display:grid; grid-template-columns:52px 1fr;
+  align-items:center; gap:10px;
+}
+.fn-back {
+  width:52px; height:52px;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:50%;
+  font-size:20px; font-weight:800;
+  border:1.5px solid var(--bdr); color:var(--ts);
+  background:transparent; cursor:pointer; transition:all .15s;
+}
+.fn-back:hover { border-color:var(--blue-h); color:var(--blue-b); }
+.fn-back:disabled { opacity:.2; cursor:not-allowed; }
+.fn-next {
+  width:100%;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  padding:14px 24px; border-radius:var(--r32);
+  font-family:var(--font); font-size:14px; font-weight:800;
+  text-transform:uppercase; letter-spacing:.5px;
+  background:var(--coral-g); color:#fff; border:none; cursor:pointer;
+  box-shadow:0 4px 20px var(--coral-glow);
+  transition:opacity .2s, transform .15s;
+}
+.fn-next:hover { opacity:.9; transform:translateY(-1px); }
+.fn-next:disabled { opacity:.3; cursor:not-allowed; box-shadow:none; transform:none; }
+.fn-next.blue-next { background:var(--blue-g); box-shadow:0 4px 20px rgba(5,117,166,.3); }
+
+/* ── MISC ────────────────────────────────────────── */
+.tag { display:inline-flex; align-items:center; gap:5px; padding:4px 11px; border-radius:20px; font-size:11px; font-weight:700; }
+.tag.blue { background:var(--blue-soft); color:var(--blue-b); border:1px solid rgba(5,117,166,.3); }
+.tag.coral { background:var(--coral-soft); color:var(--coral); border:1px solid rgba(215,96,96,.2); }
+.tag.green { background:var(--green-soft); color:#4ade80; border:1px solid rgba(0,146,10,.25); }
+.tag-row { display:flex; gap:7px; flex-wrap:wrap; justify-content:center; margin:14px 0; }
+.ctx { background:linear-gradient(135deg,rgba(5,117,166,.1),rgba(5,117,166,.03)); border:1px solid var(--bda); border-left:4px solid var(--blue-b); border-radius:0 var(--r8) var(--r8) 0; padding:13px 16px; margin-bottom:20px; }
+.ctx .cl { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--blue-b); margin-bottom:4px; }
+.ctx p { font-size:14px; color:var(--ts); line-height:1.6; }
+.divider { height:1px; background:var(--bdr); margin:20px 0; }
+.row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
+.timer { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; color:var(--blue-b); padding:3px 10px; background:var(--blue-soft); border-radius:20px; margin-bottom:12px; }
+.next-hint { font-size:12px; color:var(--tm); text-align:center; margin-top:6px; font-style:italic; }
+
+@keyframes fadeUp { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
+
+@media(max-width:600px){
+  .card-h{font-size:22px;}
+  .focus-grid,.row2{grid-template-columns:1fr;}
+  .mixer-board{min-width:340px;}
+  .prog-steps-row{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- ── PROGRESS HEADER ─── -->
+<div id="prog-header">
+  <div class="prog-top">
+    <div class="prog-logo">Кинетический <span>интеллект</span></div>
+    <div class="prog-bar-wrap">
+      <div class="prog-track"><div class="prog-fill-bar" id="progFill"></div></div>
+    </div>
+    <div class="prog-counter">Шаг <span id="progCur">1</span> из <span id="progTotal">1</span></div>
+  </div>
+  <div class="prog-steps-row" id="progDots"></div>
+</div>
+
+<!-- ── STAGE ─── -->
+<div id="stage"></div>
+
+<!-- ── FOOTER NAV ─── -->
+<div id="foot-nav">
+  <div class="foot-inner">
+    <button class="fn-back" id="btnBack" onclick="go(-1)" disabled>←</button>
+    <button class="fn-next blue-next" id="btnNext" onclick="go(1)">Далее →</button>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   STEP DEFINITIONS
+═══════════════════════════════════════════════════ */
+const STEPS = [
+
+/* 0 ── СТАРТ */ {
+  label:'Старт',
+  cat:'theory', catLabel:'📖 Теория',
+  render: () => `
+    <div class="cat-badge theory">📖 Кинетический интеллект · День 1</div>
+    <div class="card-h hero-h">Опора<br><span>и заземление</span></div>
+    <span class="c-line"></span>
+    <div class="insight">
+      <div class="it" style="font-size:16px;text-transform:none;font-weight:600;letter-spacing:0;">В этом уроке мы с вами</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px;text-align:left;">
+        <div style="display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--ts);line-height:1.5;"><span style="color:var(--blue-b);font-size:16px;flex-shrink:0;">🧠</span><span><strong style="color:var(--tp)">Узнаем</strong> — как устроена опора вашего тела и как с её помощью формировать фундамент уверенности</span></div>
+        <div style="display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--ts);line-height:1.5;"><span style="color:var(--coral);font-size:16px;flex-shrink:0;">🎬</span><span><strong style="color:var(--tp)">Выполним практику</strong> — проанализируем, как выглядит ваша опора в разных вариантах, чтобы научиться ею управлять</span></div>
+        <div style="display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--ts);line-height:1.5;"><span style="color:#4ade80;font-size:16px;flex-shrink:0;">🌱</span><span><strong style="color:var(--tp)">Внедрим</strong> — простые действия, которые вы сможете выполнять для уверенной опоры в любой момент</span></div>
+      </div>
+    </div>
+    <div class="tap-q" id="tapQ0">
+      <div class="tq-label">⚡ Поймайте себя прямо сейчас</div>
+      <div class="tq-text">Как именно вы стоите или сидите в эту секунду?</div>
+      <div class="tap-options">
+        <button class="tap-opt" onclick="chooseOpt(0,'a')">🦶 Обе стопы на полу, в целом расслаблен(а)</button>
+        <button class="tap-opt" onclick="chooseOpt(0,'b')">🦵 Нога на ногу или стопы убраны под стул</button>
+        <button class="tap-opt" onclick="chooseOpt(0,'c')">↗️ Завалился(ась) на один локоть или бок</button>
+        <button class="tap-opt" onclick="chooseOpt(0,'d')">🤷 Честно — не замечал(а) до этого момента</button>
+      </div>
+      <div class="tap-result" id="tr0"></div>
+    </div>
+    <p class="next-hint">Нажмите «Далее», чтобы начать</p>
+  `,
+  tapResults: {
+    a:'<strong>Отлично — уже чувствуете опору.</strong> Сейчас разберём, почему это важнее, чем кажется, и как настраивать её осознанно.',
+    b:'Это самая распространённая поза за компьютером. <strong>Большинство людей сидят именно так.</strong> Именно поэтому начнём с самого фундамента.',
+    c:'Асимметрия — частая компенсация усталости или привычки. <strong>Через несколько минут вы поймёте, что именно происходит с телом в этот момент.</strong>',
+    d:'Вот именно для этого и создан этот урок. <strong>Осознанность начинается здесь.</strong>'
+  }
+},
+
+/* 1 ── ПУЛЬТ КИ */ {
+  label:'Система КИ',
+  cat:'theory', catLabel:'📖 Теория',
+  render: () => `
+    <div class="cat-badge theory">📖 Теория · Блок 1</div>
+    <div class="card-h">Шесть каналов<br><span>одной системы</span></div>
+    <span class="c-line"></span>
+    <p style="font-size:15px;color:var(--ts);line-height:1.7;margin-bottom:18px;">Кинетический интеллект — это система из шести элементов. Представьте микшерный пульт: каждый канал отвечает за свой слой того, как вас воспринимают. Сегодня мы открываем <strong style="color:var(--tw)">первый — опору</strong>. Наведите на остальные, чтобы увидеть, что впереди.</p>
+    <div class="mixer-wrap">
+      <div class="mixer-title">Микшерный пульт Кинетического интеллекта · 6 каналов</div>
+      <div class="mixer-board" id="mixerBoard">
+        ${mixerHTML()}
+      </div>
+      <div class="mixer-desc" id="mixerDesc"><strong>Канал 1 — Опора</strong> · Ваша связь с поверхностью. Фундамент, на котором стоит всё остальное. <strong>Сегодняшний урок.</strong></div>
+    </div>
+    <div class="q-block">
+      <div class="q-text">«Когда человек входит в переговорную и начинает переминаться — всё, что он скажет дальше, воспринимается с поправкой на неуверенность. Даже если слова идеально подобраны»</div>
+    </div>
+  `
+},
+
+/* 2 ── ТРОЙНАЯ ОПОРА */ {
+  label:'Тройная опора',
+  cat:'theory', catLabel:'📖 Теория',
+  render: () => `
+    <div class="cat-badge theory">📖 Теория · Блок 2</div>
+    <div class="card-h">Тройная<br><span>опора стопы</span></div>
+    <span class="c-line"></span>
+    <p style="font-size:15px;color:var(--ts);line-height:1.7;margin-bottom:18px;">В биомеханике это называют <strong style="color:var(--tw)">тройная опора стопы</strong> — три точки образуют треугольник, как штатив. Нажмите на каждую точку на схеме.</p>
+    <div class="tripod-wrap">
+      <div class="tripod-svg-wrap" id="tripodWrap">
+        ${tripodSVG()}
+        <div class="t-tip" id="tt-heel"><h5 style="color:#00aaef">Пятка</h5><p>Центр пяточной кости — главный «якорь». Принимает основную часть веса. При потере контакта — тело компенсирует наклоном вперёд.</p><span class="tt-tag">Якорь</span></div>
+        <div class="t-tip" id="tt-bigtoe"><h5 style="color:#4ade80">Основание большого пальца</h5><p>Головка первой плюсневой кости. Внутренняя опора, формирует продольный свод.</p><span class="tt-tag">Внутренняя опора</span></div>
+        <div class="t-tip" id="tt-pinky"><h5 style="color:#c04060">Основание мизинца</h5><p>Головка пятой плюсневой кости. Замыкает треугольник — без неё стойка теряет боковую устойчивость.</p><span class="tt-tag">Внешняя опора</span></div>
+      </div>
+      <p class="tripod-hint">👆 Нажмите на любую точку</p>
+    </div>
+    <div class="try-now" id="tryTripod">
+      <div class="tn-label">⚡ Попробуйте прямо сейчас</div>
+      <div class="tn-text">Поднимите все пальцы ног от пола — сразу почувствуете три точки, на которых стоите. Опустите пальцы обратно, сохраняя ощущение всех трёх точек.</div>
+      <button class="tn-btn" id="tryTripodBtn" onclick="tryDone('tryTripod','tryTripodBtn','tryTripodReply')">Сделал(а) ✓</button>
+      <div class="tn-reply" id="tryTripodReply"><strong>Вот оно!</strong> То, что вы только что почувствовали — это и есть тройная опора стопы. Мозг уже получил сигнал устойчивости.</div>
+    </div>
+  `
+},
+
+/* 3 ── ТРИ СОСТОЯНИЯ */ {
+  label:'3 состояния',
+  cat:'theory', catLabel:'📖 Теория',
+  render: () => `
+    <div class="cat-badge theory">📖 Теория · Блок 3</div>
+    <div class="card-h">Три состояния<br><span>опоры</span></div>
+    <span class="c-line"></span>
+    <p style="font-size:15px;color:var(--ts);line-height:1.7;margin-bottom:18px;">Не «правильно» и «неправильно» — а три зоны диапазона. Эта рамка работает для всех шести элементов Кинетического интеллекта. Нажмите на каждое состояние.</p>
+    <div class="states-nav">
+      <button class="st-btn" onclick="showSt('usual')">👤 Как обычно</button>
+      <button class="st-btn def" onclick="showSt('deficit')">📉 Недостаток</button>
+      <button class="st-btn exc" onclick="showSt('excess')">📈 Избыток</button>
+      <button class="st-btn mid on" onclick="showSt('normal')">✅ Средний</button>
+    </div>
+    <div class="st-panel show" id="sp-usual" style="display:none">
+      <div class="st-icon">👤</div><h4 style="color:var(--ts)">Как обычно</h4>
+      <p>Одна нога «рабочая», вторая «отдыхает». Вес немного смещён. Мы просто не обращаем внимания — это нормально. Стартовая точка.</p>
+      <div class="st-impr" style="background:rgba(5,117,166,.08);border:1px solid var(--bdr);border-radius:var(--r8);">💬 Нейтрально. Отсюда начинается осознанная работа.</div>
+    </div>
+    <div class="st-panel" id="sp-deficit">
+      <div class="st-icon">📉</div><h4 style="color:var(--coral)">Недостаток опоры</h4>
+      <p>Переминание с ноги на ногу, перекрёст щиколоток, вес то на одной ноге, то на другой. Тело ищет равновесие — и не находит.</p>
+      <div class="st-impr" style="background:rgba(215,96,96,.08);border:1px solid rgba(215,96,96,.2);border-radius:var(--r8);">💬 Считывается как: тревога, нервозность. Знакомо? Собеседование, незнакомая компания, перед выступлением.</div>
+    </div>
+    <div class="st-panel" id="sp-excess">
+      <div class="st-icon">📈</div><h4 style="color:#c06080">Избыток опоры</h4>
+      <p>Ноги шире плеч, стоит монументально. Казалось бы — что плохого? Но это давление. Экспансия на окружающих.</p>
+      <div class="st-impr" style="background:rgba(122,21,48,.12);border:1px solid rgba(122,21,48,.2);border-radius:var(--r8);">💬 На жёстких переговорах — сработает. На первом знакомстве — считается как попытка доминировать.</div>
+    </div>
+    <div class="st-panel show" id="sp-normal">
+      <div class="st-icon">✅</div><h4 style="color:#4ade80">Средний вариант</h4>
+      <p>Стопы на ширине плеч. Вес на трёх точках. Колени упругие. Тело расслаблено, но вертикально. Не «стойка смирно» — а спокойное присутствие.</p>
+      <div class="st-impr" style="background:rgba(0,146,10,.1);border:1px solid rgba(0,146,10,.25);border-radius:var(--r8);">💬 Именно это считывается как уверенность. Не широкая стойка — а спокойная устойчивость.</div>
+    </div>
+    <div class="sci" style="margin-top:4px;">
+      <div class="sci-ic">🧠</div>
+      <div><h4>Нейрофизиология</h4><p>Балабан и Тайер (2001): физическая устойчивость тела напрямую связана с эмоциональной регуляцией. Устойчивые стопы → спокойный мозг → уверенное поведение.</p></div>
+    </div>
+  `
+},
+
+/* 4 ── МУЖСКАЯ/ЖЕНСКАЯ */ {
+  label:'М/Ж опора',
+  cat:'theory', catLabel:'📖 Теория',
+  render: () => `
+    <div class="cat-badge theory">📖 Теория · Блок 4</div>
+    <div class="card-h">Мужская<br><span>и женская опора</span></div>
+    <span class="c-line"></span>
+    <p style="font-size:15px;color:var(--ts);line-height:1.7;margin-bottom:16px;">Мужская и женская опора считываются по-разному. Дело не в правилах — в том, что транслирует тело.</p>
+    <table class="cmp-table">
+      <thead><tr><th>Параметр</th><th class="hl">Мужской</th><th>Женский</th></tr></thead>
+      <tbody>
+        <tr><td>Симметрия</td><td class="hl">Симметричная</td><td>Лёгкая асимметрия</td></tr>
+        <tr><td>Стопы</td><td class="hl">Параллельно, ширина плеч</td><td>Одна чуть впереди, носки наружу</td></tr>
+        <tr><td>Силуэт</td><td class="hl">Монолитный, стабильный</td><td>Динамичный, с «закрученностью»</td></tr>
+        <tr><td>Впечатление</td><td class="hl">Надёжность, основательность</td><td>Лёгкость, мягкая уверенность</td></tr>
+        <tr><td>Три точки стопы</td><td class="hl">Сохраняются</td><td>Сохраняются в каждой стопе</td></tr>
+      </tbody>
+    </table>
+    <div class="q-block coral">
+      <div class="q-text">«Асимметричная стойка без опоры — это просто перекос, а не элегантность»</div>
+      <div class="q-src">Кинетический интеллект · правило женской кинесики</div>
+    </div>
+    <div class="try-now" id="tryGender">
+      <div class="tn-label">⚡ Попробуйте</div>
+      <div class="tn-text">Встаньте в симметричную стойку (ширина плеч). Почувствуйте. Теперь переставьте одну стопу чуть вперёд, носки наружу. Что изменилось в ощущении?</div>
+      <button class="tn-btn" id="tryGenderBtn" onclick="tryDone('tryGender','tryGenderBtn','tryGenderReply')">Почувствовал(а) разницу ✓</button>
+      <div class="tn-reply" id="tryGenderReply"><strong>Оба варианта правильные</strong> — просто разные инструменты для разных контекстов. Теперь вы умеете выбирать осознанно.</div>
+    </div>
+  `
+},
+
+/* 5 ── ОПОРА СИДЯ */ {
+  label:'Опора сидя',
+  cat:'theory', catLabel:'📖 Теория',
+  render: () => `
+    <div class="cat-badge theory">📖 Теория · Блок 5</div>
+    <div class="card-h">Опора<br><span>сидя</span></div>
+    <span class="c-line"></span>
+    <p style="font-size:15px;color:var(--ts);line-height:1.7;margin-bottom:16px;">Большую часть дня вы сидите. Когда садитесь — опора не исчезает, она перемещается.</p>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">
+      ${['👟 <strong style="color:var(--tw)">Зона 1 — Стопы.</strong> Даже сидя стопы на полу посылают мозгу сигнал устойчивости. Заплетены или убраны — тот же сигнал тревоги, что и стоя.',
+         '🦴 <strong style="color:var(--tw)">Зона 2 — Седалищные кости.</strong> Два костных выступа, на которых вы сидите. Вес равномерно → тело вертикально. Перекос → цепочка компенсаций вверх.',
+         '🪑 <strong style="color:var(--tw)">Зона 3 — Спинка стула.</strong> Факультативная опора. Главное — стопы и седалищные кости.'].map(t=>`<div style="display:flex;gap:12px;background:var(--bg-card);border:1px solid var(--bdr);border-radius:var(--r8);padding:14px 16px;font-size:14px;color:var(--ts);line-height:1.6;">${t}</div>`).join('')}
+    </div>
+    <div class="try-now" id="trySitting">
+      <div class="tn-label">⚡ Прямо сейчас</div>
+      <div class="tn-text">Поставьте обе стопы на пол — на три точки. Сядьте на обе седалищные кости ровно. Произнесите вслух уверенную фразу — «я хорошо разбираюсь в этом».</div>
+      <button class="tn-btn" id="trySittingBtn" onclick="tryDone('trySitting','trySittingBtn','trySittingReply')">Почувствовал(а) ✓</button>
+      <div class="tn-reply" id="trySittingReply"><strong>Это и есть опора сидя.</strong> Голос стал чуть глубже и увереннее? Это не случайность — это нейрофизиология в действии.</div>
+    </div>
+    <div class="insight">
+      <div class="it">Устойчивые стопы →<br><span>спокойный мозг</span> →<br>уверенное поведение</div>
+      <div class="is">Работает и стоя, и сидя</div>
+    </div>
+  `
+},
+
+/* 6 ── ПЕРЕХОД В ПРАКТИКУ */ {
+  label:'К практике',
+  cat:'practice', catLabel:'🎬 Практика',
+  render: () => `
+    <div class="cat-badge practice">🎬 Переход к практике</div>
+    <div class="card-h">Теория<br><span>освоена</span></div>
+    <span class="c-line"></span>
+    <div class="celebration" id="cel1">
+      <span class="cel-emoji">🎯</span>
+      <h3>Теоретическая база готова</h3>
+      <p>Вы узнали про тройную опору стопы, три состояния, мужской и женский варианты, опору сидя. Теперь самое важное — почувствовать это в теле.</p>
+    </div>
+    <div class="ctx">
+      <div class="cl">Зачем снимать видео</div>
+      <p>Нам важно научиться <strong>чувствовать и видеть</strong> — как отличаются три вида опоры конкретно у вас. Видео — это зеркало, которое не врёт. Это задание <strong>только для вас</strong> — никто другой его не видит.</p>
+    </div>
+    <div class="row2">
+      <div class="cc" style="margin-bottom:0">
+        <div class="cn">1</div>
+        <h3>Четыре фрагмента</h3>
+        <p>Как обычно → Недостаток → Избыток → Средний. Такая структура будет в каждой практике курса.</p>
+      </div>
+      <div class="cc" style="margin-bottom:0">
+        <div class="cn">2</div>
+        <h3>Зелёный маркер</h3>
+        <p>При просмотре — сначала замечайте что нравится. Только потом — что улучшить. Так работает мозг.</p>
+      </div>
+    </div>
+    <div class="sci" style="margin-top:4px;">
+      <div class="sci-ic">👁️</div>
+      <div><h4>Три просмотра</h4><p><strong style="color:var(--tp)">1.</strong> Без звука — только тело. <strong style="color:var(--tp)">2.</strong> Только звук, глаза закрыты. <strong style="color:var(--tp)">3.</strong> Вместе — конгруэнтность.</p></div>
+    </div>
+  `
+},
+
+/* 7 ── ВИДЕО СТОЯ */ {
+  label:'Видео стоя',
+  cat:'practice', catLabel:'🎬 Практика',
+  render: () => `
+    <div class="cat-badge practice">🎬 Практика · Задание 1 из 2</div>
+    <div class="card-h">Снимаем<br><span>видео стоя</span></div>
+    <span class="c-line"></span>
+    <div class="timer">⏱ ~2–3 минуты записи</div>
+    <div class="task-steps">
+      <div class="ts-head"><div class="ts-num">→</div><h3>Подготовка</h3><span class="ts-time">1 мин</span></div>
+      <div class="ts-body">
+        <div class="ts-step"><div class="ts-n">1</div><p>Поставьте телефон так, чтобы вас было видно в <strong>полный рост</strong> — от макушки до стоп.</p></div>
+        <div class="ts-step"><div class="ts-n">2</div><p>По возможности <strong>разуйтесь</strong> — стопы лучше чувствуют опору.</p></div>
+      </div>
+    </div>
+    <div class="task-steps">
+      <div class="ts-head"><div class="ts-num">📹</div><h3>Четыре фрагмента подряд</h3><span class="ts-time">~2 мин</span></div>
+      <div class="ts-body">
+        <div class="ts-step"><div class="ts-n">1</div><p><strong>«Как обычно»</strong> — назовите имя и урок, встаньте без подготовки. 10 сек спереди, 5 сек сбоку.</p></div>
+        <div class="ts-step"><div class="ts-n">2</div><p><strong>«Недостаток»</strong> — переминание, перекрёст щиколоток, вес то на одной ноге, то на другой. 10 секунд.</p></div>
+        <div class="ts-step"><div class="ts-n">3</div><p><strong>«Избыток»</strong> — ноги шире плеч, стойте монументально. 10 секунд.</p></div>
+        <div class="ts-step"><div class="ts-n">4</div><p><strong>«Средний»</strong> — стопы на ширине плеч, три точки, колени мягкие. 10 сек + 5 сек сбоку.</p></div>
+        <div class="ts-step"><div class="ts-n">✨</div><p><strong>Женщинам — 5-й (при желании):</strong> «средний, асимметричный» — одна стопа чуть впереди, носки наружу. 10 секунд.</p></div>
+      </div>
+    </div>
+    <div class="tap-q" id="tapQ7">
+      <div class="tq-label">✅ Отметьте, когда готово</div>
+      <div class="tq-text">Видео стоя записано?</div>
+      <div class="tap-options">
+        <button class="tap-opt" onclick="chooseOpt(7,'done')">✓ Да, записал(а)!</button>
+        <button class="tap-opt" onclick="chooseOpt(7,'later')">⏸ Запишу позже и вернусь</button>
+      </div>
+      <div class="tap-result" id="tr7"></div>
+    </div>
+  `,
+  tapResults: {
+    done:'<strong>Отлично!</strong> Самое важное — вы это сделали. Переходите к видео сидя.',
+    later:'<strong>Хорошо.</strong> Сохраните страницу и возвращайтесь — прогресс сохранится.'
+  }
+},
+
+/* 8 ── ВИДЕО СИДЯ */ {
+  label:'Видео сидя',
+  cat:'practice', catLabel:'🎬 Практика',
+  render: () => `
+    <div class="cat-badge practice">🎬 Практика · Задание 2 из 2</div>
+    <div class="card-h">Снимаем<br><span>видео сидя</span></div>
+    <span class="c-line"></span>
+    <div class="timer">⏱ ~1–2 минуты записи</div>
+    <div class="task-steps">
+      <div class="ts-head"><div class="ts-num">📹</div><h3>Четыре фрагмента подряд</h3><span class="ts-time">~1.5 мин</span></div>
+      <div class="ts-body">
+        <div class="ts-step"><div class="ts-n">1</div><p><strong>«Как обычно сижу»</strong> — привычная поза, нога на ногу. 10 секунд.</p></div>
+        <div class="ts-step"><div class="ts-n">2</div><p><strong>«Недостаток»</strong> — сползли по стулу, ноги заплетены, вес на копчике. 10 секунд.</p></div>
+        <div class="ts-step"><div class="ts-n">3</div><p><strong>«Избыток»</strong> — развалились, руки раскинуты, ноги вперёд. 10 секунд.</p></div>
+        <div class="ts-step"><div class="ts-n">4</div><p><strong>«Средний»</strong> — стопы на полу на трёх точках, вес на обеих седалищных костях, корпус вертикален. 10 секунд.</p></div>
+      </div>
+    </div>
+    <div class="tap-q" id="tapQ8">
+      <div class="tq-label">✅ Отметьте, когда готово</div>
+      <div class="tq-text">Видео сидя записано?</div>
+      <div class="tap-options">
+        <button class="tap-opt" onclick="chooseOpt(8,'done')">✓ Да, готово!</button>
+        <button class="tap-opt" onclick="chooseOpt(8,'later')">⏸ Запишу позже</button>
+      </div>
+      <div class="tap-result" id="tr8"></div>
+    </div>
+  `,
+  tapResults: {
+    done:'<strong>Вы сделали то, что большинство людей не делают никогда</strong> — посмотрели на себя со стороны. Это первый настоящий шаг к осознанной работе с телом.',
+    later:'<strong>Хорошо.</strong> Возвращайтесь — задание никуда не денется.'
+  }
+},
+
+/* 9 ── САМОАНАЛИЗ 1 */ {
+  label:'Анализ стоя',
+  cat:'task', catLabel:'✏️ Задание',
+  render: () => `
+    <div class="cat-badge task">✏️ Задание · Самоанализ</div>
+    <div class="card-h">Вопросы<br><span>к видео стоя</span></div>
+    <span class="c-line"></span>
+    <div class="ctx">
+      <div class="cl">Только для вас</div>
+      <p>Здесь нет правильных ответов — только ваши наблюдения. Никто другой эти ответы не видит.</p>
+    </div>
+    <div class="wb-wrap">
+      <div class="wb-head"><div class="wb-head-t"><span>📹</span> Видео стоя</div><span class="wb-badge">Стоя</span></div>
+      <div class="wb-body">
+        <div class="wb-f">
+          <label>На какой из вариантов похоже ваше «как обычно»?</label>
+          <textarea id="q1" placeholder="Посмотрите без оценок — просто заметьте. Ближе к недостатку, среднему или избытку?"></textarea>
+          <div class="wb-hint">💡 Не оценивайте — просто наблюдайте</div>
+        </div>
+        <div class="wb-f">
+          <label>В каком варианте было спокойнее? В каком — тревожнее?</label>
+          <textarea id="q2" placeholder="Вспомните телесные ощущения в каждом фрагменте..."></textarea>
+        </div>
+        <div class="wb-f">
+          <label>Женщинам: симметричный или асимметричный? В каком комфортнее?</label>
+          <textarea id="q3" placeholder="В каком варианте вы себе больше нравитесь на видео?"></textarea>
+        </div>
+      </div>
+    </div>
+  `
+},
+
+/* 10 ── САМОАНАЛИЗ 2 */ {
+  label:'Анализ сидя',
+  cat:'task', catLabel:'✏️ Задание',
+  render: () => `
+    <div class="cat-badge task">✏️ Задание · Самоанализ</div>
+    <div class="card-h">Вопросы<br><span>к видео сидя</span></div>
+    <span class="c-line"></span>
+    <div class="wb-wrap">
+      <div class="wb-head"><div class="wb-head-t"><span>🪑</span> Видео сидя</div><span class="wb-badge c">Сидя</span></div>
+      <div class="wb-body">
+        <div class="wb-f">
+          <label>Где были стопы в варианте «как обычно»?</label>
+          <textarea id="q4" placeholder="На полу? Под стулом? Заплетены? Куда был смещён вес?"></textarea>
+        </div>
+        <div class="wb-f">
+          <label>Что изменилось визуально при переходе к среднему?</label>
+          <textarea id="q5" placeholder="Сравните два варианта — что вы заметили?"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="wb-wrap">
+      <div class="wb-head"><div class="wb-head-t"><span>📊</span> Шкала осознанности</div></div>
+      <div class="wb-body">
+        <div style="font-size:13px;font-weight:700;color:var(--td);margin-bottom:9px;">Насколько вы сейчас осознаёте свою опору в обычной жизни?<br><span style="font-size:12px;color:var(--tdm);font-weight:500;">0 — вообще не замечаю · 10 — всегда чувствую стопы</span></div>
+        <div class="scale-nums" id="scaleTrack"></div>
+        <div class="scale-res" id="scaleResult"></div>
+        <div class="wb-hint" style="margin-top:8px;">📌 Запишите эту цифру — мы вернёмся к ней в конце курса.</div>
+      </div>
+    </div>
+  `
+},
+
+/* 11 ── СОХРАНИТЬ */ {
+  label:'Сохранить',
+  cat:'task', catLabel:'✏️ Задание',
+  render: () => `
+    <div class="cat-badge task">✏️ Задание · Сохранение</div>
+    <div class="card-h">Сохраните<br><span>ваши ответы</span></div>
+    <span class="c-line"></span>
+    <div class="ctx">
+      <div class="cl">Важно</div>
+      <p>Ваши записи хранятся только в браузере. Скопируйте их одним нажатием и вставьте в любое удобное место: заметки, Google Docs, Notion, мессенджер себе. Или распечатайте вопросы для тетради.</p>
+    </div>
+    <div class="export-box">
+      <h4>💾 Экспорт ваших ответов</h4>
+      <p>Нажмите кнопку — и весь ваш самоанализ скопируется в буфер обмена. Потом просто вставьте (Ctrl+V / Cmd+V) куда удобно.</p>
+      <div class="exp-btns">
+        <button class="exp-btn cp" onclick="copyAnswers()">📋 Скопировать ответы</button>
+        <button class="exp-btn pr" onclick="window.print()">🖨️ Распечатать вопросы</button>
+      </div>
+      <div class="cp-ok" id="copyConfirm">✓ Скопировано! Вставьте в удобное место.</div>
+    </div>
+    <div>
+      <div style="font-size:13px;font-weight:700;color:var(--tp);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Прогресс урока</div>
+      <div class="pb-row"><div class="pb-label">Теория</div><div class="pb-track"><div class="pb-fill" style="width:100%"></div></div><div class="pb-pct">100%</div></div>
+      <div class="pb-row"><div class="pb-label">Практика</div><div class="pb-track"><div class="pb-fill c" style="width:100%"></div></div><div class="pb-pct" style="color:var(--coral)">100%</div></div>
+      <div class="pb-row"><div class="pb-label">Самоанализ</div><div class="pb-track"><div class="pb-fill" style="width:100%"></div></div><div class="pb-pct">100%</div></div>
+    </div>
+  `
+},
+
+/* 12 ── В ЖИЗНЬ */ {
+  label:'В жизнь',
+  cat:'life', catLabel:'🌱 В жизнь',
+  render: () => `
+    <div class="cat-badge life">🌱 В жизнь</div>
+    <div class="card-h">Два фокуса<br><span>на день</span></div>
+    <span class="c-line"></span>
+    <div class="focus-grid">
+      <div class="fc"><div class="fe">📱</div><h4>Фокус 1 — Стоя</h4><p>Берёте телефон ответить на звонок → проверьте стопы. Три точки. Одна секунда.</p></div>
+      <div class="fc"><div class="fe">💻</div><h4>Фокус 2 — Сидя</h4><p>Садитесь за стол → где стопы? Три точки, седалищные кости ровно. Одна секунда.</p></div>
+    </div>
+    <div class="q-block">
+      <div class="q-text">«Телефон — стопы. Стол — стопы. Больше ничего. Это начало осознанной работы с телом»</div>
+      <div class="q-src">Михаил Дементьев · Кинетический интеллект</div>
+    </div>
+    <div class="divider"></div>
+    <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--tp);margin-bottom:12px;">Четыре вывода урока</div>
+    <div class="cc"><div class="cn">1</div><h3>Тройная опора стопы</h3><p>Три точки — пятка, основание большого пальца, основание мизинца. Треугольник. Все три на полу → вы устойчивы.</p></div>
+    <div class="cc"><div class="cn">2</div><h3>Нейрофизиология</h3><p>Устойчивые стопы → спокойный мозг → уверенное поведение. Это не метафора — это биохимия.</p></div>
+    <div class="cc"><div class="cn">3</div><h3>Диапазон, не оценка</h3><p>Недостаток, средний, избыток. Наша цель — «уместно и достойно». Эта рамка работает для всех шести элементов Кинетического интеллекта.</p></div>
+    <div class="cc"><div class="cn">4</div><h3>Работает везде</h3><p>Стоя и сидя. Мужская → симметрия, женская → асимметрия. Фундамент один: три точки стопы.</p></div>
+    <div class="insight" style="margin-top:8px;">
+      <div class="it">День 2 — <span>Вертикаль</span></div>
+      <div class="is">«Опора — фундамент. Вертикаль — стены и крыша. Соберём архитектуру вашего тела»</div>
+    </div>
+    <div class="tag-row">
+      <span class="tag blue">📖 Теория пройдена</span>
+      <span class="tag coral">🎬 Практика выполнена</span>
+      <span class="tag green">✅ День 1 завершён</span>
+    </div>
+  `
+}
+
+]; // end STEPS
+
+/* ═══════════════════════════════════════════════════
+   HELPERS: MIXER HTML
+═══════════════════════════════════════════════════ */
+const MIXER_DATA = [
+  {label:'Опора',day:'День 1',db:'+2',h:80,active:true},
+  {label:'Вертикаль',day:'День 2',db:'–∞',h:0},
+  {label:'Жест',day:'День 3',db:'–∞',h:0},
+  {label:'Взгляд',day:'День 4',db:'–∞',h:0},
+  {label:'Простр.',day:'День 5',db:'–∞',h:0},
+  {label:'Ритм',day:'День 6',db:'–∞',h:0},
+];
+const MIXER_DESC = [
+  'Ваша связь с поверхностью — как стопы стоят на полу. Фундамент Кинетического интеллекта. <strong>Сегодняшний урок.</strong>',
+  'Ось тела и осанка. «Если опора — фундамент, то вертикаль — стены и крыша». <strong>День 2.</strong>',
+  'Язык рук: от открытых жестов до закрытых поз. <strong>День 3.</strong>',
+  'Направление и качество взгляда. Контакт глазами — мощнейший инструмент присутствия. <strong>День 4.</strong>',
+  'Как вы занимаете пространство вокруг себя. Зоны комфорта, перемещение. <strong>День 5.</strong>',
+  'Темп движений, паузы, синхронизация с собеседником. <strong>День 6.</strong>',
+];
+function mixerHTML(){
+  return MIXER_DATA.map((d,i)=>`
+    <div class="fader-ch${d.active?' active':''}" data-ch="${i}"
+      ${d.active ? 'onclick="activateFader(this)"' : 'onmouseenter="peekFader(this)" onmouseleave="unpeekFader(this)"'}>
+      <div class="fader-db">${d.db}</div>
+      <div class="fader-track">
+        <div class="fader-fill" style="height:${d.h}%"></div>
+        <div class="fader-grip" style="bottom:${d.h}%;transform:translateX(-50%) translateY(50%)"></div>
+      </div>
+      <div class="fader-body"><div class="fader-led"></div><div class="fader-ch-n">CH${i+1}</div></div>
+      <div class="fader-label">${d.label}</div>
+      <div class="fader-day">${d.day}</div>
+    </div>
+  `).join('');
+}
+
+/* ═══════════════════════════════════════════════════
+   HELPERS: TRIPOD SVG
+═══════════════════════════════════════════════════ */
+function tripodSVG(){
+  return `<svg viewBox="0 0 260 340" xmlns="http://www.w3.org/2000/svg">
+  <!-- Foot contour: toes at top, heel at bottom -->
+  <path d="
+    M 130 290
+    C 108 294, 88 284, 78 268
+    C 68 252, 66 230, 68 208
+    C 70 186, 78 170, 84 152
+    C 90 134, 92 114, 90 95
+    C 88 78, 84 62, 88 50
+    C 92 38, 104 30, 116 28
+    C 122 27, 128 26, 134 26
+    C 140 26, 146 27, 152 30
+    C 162 34, 172 44, 172 56
+    C 172 68, 166 82, 166 98
+    C 166 116, 170 136, 174 154
+    C 178 172, 184 190, 186 210
+    C 188 232, 186 252, 178 268
+    C 170 284, 152 294, 130 290 Z
+  " fill="rgba(5,117,166,.07)" stroke="rgba(5,117,166,.2)" stroke-width="1.5" stroke-linejoin="round"/>
+
+  <!-- Toe circles (fingerprint style) at top of foot -->
+  <!-- Big toe -->
+  <g opacity=".85">
+    <circle cx="108" cy="32" r="11" fill="rgba(5,117,166,.08)" stroke="rgba(5,117,166,.2)" stroke-width="1"/>
+    <circle cx="108" cy="32" r="7" fill="none" stroke="rgba(5,117,166,.18)" stroke-width="1"/>
+    <circle cx="108" cy="32" r="3.5" fill="rgba(5,117,166,.2)"/>
+  </g>
+  <!-- 2nd toe -->
+  <g opacity=".75">
+    <circle cx="122" cy="22" r="9" fill="rgba(5,117,166,.07)" stroke="rgba(5,117,166,.15)" stroke-width="1"/>
+    <circle cx="122" cy="22" r="5.5" fill="none" stroke="rgba(5,117,166,.15)" stroke-width="1"/>
+    <circle cx="122" cy="22" r="2.5" fill="rgba(5,117,166,.18)"/>
+  </g>
+  <!-- 3rd toe -->
+  <g opacity=".72">
+    <circle cx="134" cy="19" r="8.5" fill="rgba(5,117,166,.07)" stroke="rgba(5,117,166,.14)" stroke-width="1"/>
+    <circle cx="134" cy="19" r="5" fill="none" stroke="rgba(5,117,166,.14)" stroke-width="1"/>
+    <circle cx="134" cy="19" r="2.5" fill="rgba(5,117,166,.16)"/>
+  </g>
+  <!-- 4th toe -->
+  <g opacity=".68">
+    <circle cx="146" cy="22" r="8" fill="rgba(5,117,166,.06)" stroke="rgba(5,117,166,.13)" stroke-width="1"/>
+    <circle cx="146" cy="22" r="4.5" fill="none" stroke="rgba(5,117,166,.13)" stroke-width="1"/>
+    <circle cx="146" cy="22" r="2" fill="rgba(5,117,166,.14)"/>
+  </g>
+  <!-- Little toe / pinky -->
+  <g opacity=".65">
+    <circle cx="157" cy="30" r="7.5" fill="rgba(5,117,166,.06)" stroke="rgba(5,117,166,.12)" stroke-width="1"/>
+    <circle cx="157" cy="30" r="4" fill="none" stroke="rgba(5,117,166,.12)" stroke-width="1"/>
+    <circle cx="157" cy="30" r="2" fill="rgba(5,117,166,.13)"/>
+  </g>
+
+  <!-- Triangle: big toe base, pinky base, heel (bottom) -->
+  <polygon points="98,80  162,80  130,278"
+    fill="none" stroke="#0093d5" stroke-width="1.3" stroke-dasharray="5,4" opacity=".45"/>
+
+  <!-- Arch lines subtle -->
+  <path d="M98 80 Q130 180 162 80" fill="none" stroke="rgba(5,117,166,.1)" stroke-width="1"/>
+  <path d="M98 80 Q88 180 130 278" fill="none" stroke="rgba(5,117,166,.07)" stroke-width="1"/>
+  <path d="M162 80 Q172 180 130 278" fill="none" stroke="rgba(5,117,166,.07)" stroke-width="1"/>
+
+  <!-- Center label -->
+  <text x="130" y="178" text-anchor="middle" font-family="Manrope,Arial" font-size="9" font-weight="700"
+    fill="rgba(0,170,239,.3)" letter-spacing="1.5">ТРОЙНАЯ ОПОРА</text>
+
+  <!-- POINT A: big toe base — top left -->
+  <g class="tripod-point" onclick="showTip('bigtoe',98,80)">
+    <circle cx="98" cy="80" r="20" fill="rgba(0,146,10,.08)"/>
+    <circle class="inner" cx="98" cy="80" r="13" fill="rgba(0,146,10,.2)" stroke="#00920a" stroke-width="1.5"/>
+    <circle cx="98" cy="80" r="6" fill="#4ade80"/>
+    <text x="64" y="72" font-family="Manrope,Arial" font-size="9" font-weight="800" fill="#4ade80">БОЛ.</text>
+    <text x="56" y="82" font-family="Manrope,Arial" font-size="9" font-weight="800" fill="#4ade80">ПАЛЕЦ</text>
+  </g>
+
+  <!-- POINT B: pinky base — top right -->
+  <g class="tripod-point" onclick="showTip('pinky',162,80)">
+    <circle cx="162" cy="80" r="20" fill="rgba(122,21,48,.08)"/>
+    <circle class="inner" cx="162" cy="80" r="13" fill="rgba(122,21,48,.2)" stroke="#7A1530" stroke-width="1.5"/>
+    <circle cx="162" cy="80" r="6" fill="#c04060"/>
+    <text x="168" y="72" font-family="Manrope,Arial" font-size="9" font-weight="800" fill="#c04060">МИЗ-</text>
+    <text x="168" y="82" font-family="Manrope,Arial" font-size="9" font-weight="800" fill="#c04060">ИНЕЦ</text>
+  </g>
+
+  <!-- POINT C: heel — bottom -->
+  <g class="tripod-point" onclick="showTip('heel',130,278)">
+    <circle cx="130" cy="278" r="22" fill="rgba(5,117,166,.08)"/>
+    <circle class="inner" cx="130" cy="278" r="14" fill="rgba(5,117,166,.2)" stroke="#0093d5" stroke-width="1.5"/>
+    <circle cx="130" cy="278" r="7" fill="#00aaef"/>
+    <text x="130" y="308" text-anchor="middle" font-family="Manrope,Arial" font-size="9" font-weight="800" fill="#00aaef">ПЯТКА</text>
+  </g>
+</svg>`;
+}
+
+/* ═══════════════════════════════════════════════════
+   ENGINE
+═══════════════════════════════════════════════════ */
+let cur = 0;
+const total = STEPS.length;
+
+// Build progress dots
+const dotsEl = document.getElementById('progDots');
+STEPS.forEach((s,i)=>{
+  const d = document.createElement('div');
+  d.className = 'prog-dot';
+  d.dataset.label = s.label;
+  d.onclick = ()=>{ if(i<=cur) jumpTo(i); };
+  dotsEl.appendChild(d);
+});
+document.getElementById('progTotal').textContent = total;
+
+// Build all cards
+const stage = document.getElementById('stage');
+const cards = [];
+STEPS.forEach((s,i)=>{
+  const el = document.createElement('div');
+  el.className = 'card';
+  el.id = 'card-'+i;
+  el.innerHTML = `<div class="card-inner">${s.render()}</div>`;
+  stage.appendChild(el);
+  cards.push(el);
+});
+
+const NEXT_LABELS = [
+  'Как это связано с уверенностью? →',
+  'Как устроена тройная опора? →',
+  'А есть ли разница — много или мало? →',
+  'Есть ли разница у мужчин и женщин? →',
+  'А как это работает, когда я сижу? →',
+  'Готов(а) попробовать на себе →',
+  'Снимаю видео стоя →',
+  'Снимаю видео сидя →',
+  'Разобраться что увидел(а) стоя →',
+  'Записать наблюдения сидя →',
+  'Сохранить мои ответы →',
+  'Что делать с этим в жизни? →',
+  '🎉 День 1 завершён!',
+];
+
+function updateProgress(){
+  const pct = ((cur+1)/total)*100;
+  document.getElementById('progFill').style.width = pct+'%';
+  document.getElementById('progCur').textContent = cur+1;
+  const dots = dotsEl.querySelectorAll('.prog-dot');
+  dots.forEach((d,i)=>{
+    d.classList.remove('active','done');
+    if(i<cur) d.classList.add('done');
+    if(i===cur) d.classList.add('active');
+  });
+  document.getElementById('btnBack').disabled = cur===0;
+  const isLast = cur===total-1;
+  const next = document.getElementById('btnNext');
+  if(isLast){
+    next.textContent = '🎉 День 1 завершён!';
+    next.disabled = true;
+    next.className = 'fn-next';
+  } else {
+    next.innerHTML = NEXT_LABELS[cur] || (STEPS[cur+1].label+' →');
+    next.disabled = false;
+    next.className = 'fn-next';
+    if(STEPS[cur+1] && STEPS[cur+1].cat==='theory') next.classList.add('blue-next');
+  }
+}
+
+function showCard(idx, dir){
+  cards.forEach((c,i)=>{
+    if(i===idx){ c.className='card active'; c.scrollTop=0; }
+    else if(dir>0 && i===idx-1){ c.className='card exit-left'; }
+    else { c.className='card'; }
+  });
+  updateProgress();
+  // init per-card interactions
+  setTimeout(()=>{
+    initCard(idx);
+  }, 50);
+}
+
+function go(dir){
+  const next = cur + dir;
+  if(next<0 || next>=total) return;
+  cur = next;
+  showCard(cur, dir);
+}
+
+function jumpTo(idx){
+  const dir = idx>cur?1:-1;
+  cur=idx;
+  showCard(cur,dir);
+}
+
+/* ═══════════════════════════════════════════════════
+   PER-CARD INIT
+═══════════════════════════════════════════════════ */
+let activeTip = null;
+let scaleValue = null;
+
+function initCard(idx){
+  const s = STEPS[idx];
+
+  // Mixer
+  if(document.getElementById('mixerBoard')){
+    // already in DOM via render
+  }
+
+  // Scale
+  if(document.getElementById('scaleTrack') && !document.getElementById('scaleTrack').children.length){
+    const msgs = ['Отличная стартовая точка — именно ради этого существует первый урок 🙂','Всё только начинается — скоро тело начнёт говорить с вами громче','Небольшое осознание уже есть — есть куда расти','Уже замечаете — это важнее, чем кажется','Середина пути — хорошая база','Осознанность пробуждается — практика закрепит','Хороший уровень — теперь нужна стабильность','Уже чувствуете тело — сделать это автоматическим','Высокий уровень — курс доведёт до совершенства','Очень высокий — тонкая настройка и новые контексты','Превосходно! Тонкая настройка и углублённая работа 🎯'];
+    const st = document.getElementById('scaleTrack');
+    for(let i=0;i<=10;i++){
+      const b=document.createElement('button');
+      b.className='sn'; b.textContent=i;
+      const v=i;
+      b.onclick=function(){
+        document.querySelectorAll('.sn').forEach(x=>x.classList.remove('on'));
+        this.classList.add('on'); scaleValue=v;
+        const r=document.getElementById('scaleResult');
+        r.textContent=msgs[v]; r.classList.add('show');
+      };
+      st.appendChild(b);
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   INTERACTIONS
+═══════════════════════════════════════════════════ */
+function activateFader(el){
+  document.querySelectorAll('.fader-ch').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  const idx=parseInt(el.dataset.ch);
+  const desc=document.getElementById('mixerDesc');
+  if(desc) desc.innerHTML='<strong>Канал '+(idx+1)+' — '+MIXER_DATA[idx].label+'</strong> · '+MIXER_DESC[idx];
+}
+function peekFader(el){
+  const idx=parseInt(el.dataset.ch);
+  const desc=document.getElementById('mixerDesc');
+  if(desc){
+    el.style.opacity='0.9';
+    desc.innerHTML='<span style="color:var(--tm)">Канал '+(idx+1)+' — '+MIXER_DATA[idx].label+'</span> · <span style="color:var(--tm)">'+MIXER_DESC[idx]+'</span>';
+  }
+}
+function unpeekFader(el){
+  el.style.opacity='';
+  const desc=document.getElementById('mixerDesc');
+  if(desc) desc.innerHTML='<strong>Канал 1 — Опора</strong> · Ваша связь с поверхностью. Фундамент, на котором стоит всё остальное. <strong>Сегодняшний урок.</strong>';
+}
+
+function showTip(name,svgX,svgY){
+  document.querySelectorAll('.t-tip').forEach(t=>t.classList.remove('show'));
+  if(activeTip===name){activeTip=null;return;}
+  activeTip=name;
+  const tt=document.getElementById('tt-'+name);
+  const wrap=document.getElementById('tripodWrap');
+  if(!tt||!wrap) return;
+  const wR=wrap.getBoundingClientRect();
+  const svg=wrap.querySelector('svg');
+  const sR=svg.getBoundingClientRect();
+  const sx=sR.width/260, sy=sR.height/340;
+  const px=sR.left-wR.left+svgX*sx;
+  const py=sR.top-wR.top+svgY*sy;
+  tt.style.left=Math.min(Math.max(px-92,0),wR.width-195)+'px';
+  const above=py-145;
+  tt.style.top=(above>8?above:py+28)+'px';
+  tt.classList.add('show');
+}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.tripod-point')&&!e.target.closest('.t-tip')){
+    document.querySelectorAll('.t-tip').forEach(t=>t.classList.remove('show'));
+    activeTip=null;
+  }
+});
+
+function showSt(name){
+  document.querySelectorAll('.st-panel').forEach(p=>p.classList.remove('show'));
+  document.querySelectorAll('.st-btn').forEach(b=>b.classList.remove('on'));
+  const panel=document.getElementById('sp-'+name);
+  if(panel) panel.classList.add('show');
+  const map={usual:0,deficit:1,excess:2,normal:3};
+  const btns=document.querySelectorAll('.st-btn');
+  if(btns[map[name]]) btns[map[name]].classList.add('on');
+}
+
+function tryDone(wrapId,btnId,replyId){
+  const btn=document.getElementById(btnId);
+  const reply=document.getElementById(replyId);
+  if(btn){ btn.classList.add('done'); btn.textContent='✓ Готово!'; btn.onclick=null; }
+  if(reply) reply.classList.add('show');
+}
+
+function chooseOpt(stepIdx, key){
+  const s=STEPS[stepIdx];
+  if(!s||!s.tapResults) return;
+  const qid='tapQ'+stepIdx;
+  const trid='tr'+stepIdx;
+  const wrap=document.getElementById(qid);
+  const res=document.getElementById(trid);
+  if(!wrap||!res) return;
+  wrap.querySelectorAll('.tap-opt').forEach(b=>b.classList.remove('chosen'));
+  const opts=wrap.querySelectorAll('.tap-opt');
+  const keys=Object.keys(s.tapResults);
+  const ki=keys.indexOf(key);
+  if(opts[ki]) opts[ki].classList.add('chosen');
+  res.innerHTML=s.tapResults[key];
+  res.classList.add('show');
+}
+
+function copyAnswers(){
+  const g=(id)=>{ const el=document.getElementById(id); return el?el.value||'(не заполнено)':'(не заполнено)'; };
+  const sc=scaleValue!==null?scaleValue+'/10':'(не выбрано)';
+  const text=`КИНЕТИЧЕСКИЙ ИНТЕЛЛЕКТ — День 1: Опора и заземление
+Мои ответы на самоанализ
+================================
+
+📹 ВИДЕО СТОЯ
+
+На какой из вариантов похоже моё «как обычно»?
+${g('q1')}
+
+В каком варианте было спокойнее? В каком тревожнее?
+${g('q2')}
+
+Симметричный или асимметричный вариант (для женщин)?
+${g('q3')}
+
+🪑 ВИДЕО СИДЯ
+
+Где были стопы в варианте «как обычно»?
+${g('q4')}
+
+Что изменилось визуально при переходе к среднему?
+${g('q5')}
+
+📊 ШКАЛА ОСОЗНАННОСТИ: ${sc}
+
+================================
+Два фокуса на день:
+• Телефон → стопы
+• Рабочий стол → стопы`;
+  navigator.clipboard.writeText(text).then(showCpOk).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showCpOk();
+  });
+}
+function showCpOk(){const c=document.getElementById('copyConfirm');if(c){c.classList.add('show');setTimeout(()=>c.classList.remove('show'),5000);}}
+
+/* ═══════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════ */
+showCard(0, 1);
+</script>
+</body>
+</html>
