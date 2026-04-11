@@ -1030,13 +1030,15 @@ function showTab(id,btn){
   document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));
   document.getElementById('panel-'+id).classList.add('active');
   btn.classList.add('active');
+  // Scroll self (standalone)
+  window.scrollTo(0,0);
+  document.documentElement.scrollTop=0;
+  document.body.scrollTop=0;
+  // After render: fix height + scroll parent
   setTimeout(function(){
     reportHeight();
     window.parent.postMessage('scrollToFrame','*');
-    window.scrollTo(0,0);
-    document.documentElement.scrollTop=0;
-    document.body.scrollTop=0;
-  },80);
+  },150);
 }
     try{ window.top.postMessage({type:'scrollToIframe'},'*'); }catch(e){}
     // Standalone scroll (when opened directly in browser)
@@ -1283,9 +1285,13 @@ window.addEventListener('message',function(e){
 <script>
 // Report height to parent so iframe can auto-resize (no internal scroll)
 function reportHeight(){
-  var panels=document.querySelectorAll('.panel.active');
-  var h=0;
-  panels.forEach(function(p){h=Math.max(h,p.scrollHeight);});
+  var h = Math.max(
+    document.body.scrollHeight,
+    document.documentElement.scrollHeight
+  );
+  window.parent.postMessage({type:'setHeight', height: h + 50}, '*');
+}, '*');
+});
   var header=document.querySelector('.page-header');
   var tabs=document.querySelector('.tabs-sticky');
   if(header) h+=header.offsetHeight;
