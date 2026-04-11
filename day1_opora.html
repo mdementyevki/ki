@@ -1014,15 +1014,20 @@ body{background:var(--bg-deep);color:var(--text-primary);font-family:var(--font)
 var sliderMessages=['Никогда, тело жило само по себе — отличная точка отсчёта','Почти никогда — скоро это изменится','Очень редко — осознанность только начинается','Иногда замечаете — хорошая база','Бывает — тело начинает говорить','Середина пути — хорошая база для развития','Чаще да, чем нет — уже неплохо','Довольно часто — теперь сделаем это привычкой','Часто и осознанно — курс поможет закрепить','Почти всегда — тонкая настройка впереди','Всегда, постоянно — превосходно!'];
 var scaleVal=5;
 function showTab(id,btn){
+  // 1. Switch panel first
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));
   document.getElementById('panel-'+id).classList.add('active');
   btn.classList.add('active');
+  // 2. Scroll after browser has rendered new panel
   setTimeout(function(){
+    var tabs=document.querySelector('.tabs-sticky');
+    if(tabs){tabs.scrollIntoView({block:'start',behavior:'instant'});}
     window.scrollTo(0,0);
     document.documentElement.scrollTop=0;
     document.body.scrollTop=0;
-  },0);
+    try{window.top.scrollTo(0,0);}catch(e){}
+  },30);
 }
 
 /* ── MIXER ── */
