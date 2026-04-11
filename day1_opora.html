@@ -50,8 +50,8 @@
 }
 
 *{margin:0;padding:0;box-sizing:border-box;}
-html{scroll-behavior:smooth;}
-body{background:var(--bg-deep);color:var(--text-primary);font-family:var(--font);line-height:1.55;font-weight:500;}
+html{}
+body{background:var(--bg-deep);color:var(--text-primary);font-family:var(--font);line-height:1.55;font-weight:500;overflow-x:hidden;}
 
 /* ═══════════════════════════════════════════
    PAGE LAYOUT
@@ -64,7 +64,7 @@ body{background:var(--bg-deep);color:var(--text-primary);font-family:var(--font)
 .page-header {
   padding:72px 0 52px;
   border-bottom:1px solid var(--border);
-  position:relative; overflow:hidden;
+  position:relative;
   background:
     radial-gradient(ellipse at 20% 50%,var(--crimson-glow) 0%,transparent 50%),
     radial-gradient(ellipse at 80% 60%,rgba(5,80,166,0.25) 0%,transparent 50%),
@@ -396,6 +396,10 @@ body{background:var(--bg-deep);color:var(--text-primary);font-family:var(--font)
   .tab-btn{min-width:80px;font-size:11px;}
   .big-insight{padding:28px 20px;}
   .big-insight .insight-text{font-size:24px;}
+  .compare-table{font-size:12px;}
+  .compare-table th,.compare-table td{padding:10px 12px;}
+  .st-panel-inner{flex-direction:column;}
+  .st-photo{width:100%;min-width:unset;aspect-ratio:2/3;}
 }
 
 /* Photo placeholders */
@@ -626,6 +630,14 @@ body{background:var(--bg-deep);color:var(--text-primary);font-family:var(--font)
 .vc-imp-exc { background: rgba(122,21,48,.12); color: #c06080; border: 1px solid rgba(122,21,48,.2); }
 
 /* RESPONSIVE */
+@media(max-width:768px){
+  .vc-grid { grid-template-columns: repeat(2, 1fr); }
+  .vc-photo { height: 300px; }
+}
+@media(max-width:480px){
+  .vc-grid { grid-template-columns: 1fr; }
+  .vc-photo { height: 380px; }
+}
 </style>
 </head>
 <body>
@@ -1006,7 +1018,7 @@ function showTab(id,btn){
   document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));
   document.getElementById('panel-'+id).classList.add('active');
   btn.classList.add('active');
-  window.scrollTo({top:0,behavior:'smooth'});
+  window.scrollTo({top:0,behavior:'instant'});
 }
 
 /* ── MIXER ── */
