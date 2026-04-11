@@ -651,6 +651,7 @@ html, body {
   scroll-margin-top: 0;
 }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.9/iframeResizer.contentWindow.min.js"></script>
 </head>
 <body>
 <div class="page-wrap">
@@ -1030,15 +1031,9 @@ function showTab(id,btn){
   document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));
   document.getElementById('panel-'+id).classList.add('active');
   btn.classList.add('active');
-  // Scroll self (standalone)
   window.scrollTo(0,0);
   document.documentElement.scrollTop=0;
   document.body.scrollTop=0;
-  // After render: fix height + scroll parent
-  setTimeout(function(){
-    reportHeight();
-    window.parent.postMessage('scrollToFrame','*');
-  },150);
 }
     try{ window.top.postMessage({type:'scrollToIframe'},'*'); }catch(e){}
     // Standalone scroll (when opened directly in browser)
