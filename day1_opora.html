@@ -50,7 +50,7 @@
 }
 
 *{margin:0;padding:0;box-sizing:border-box;}
-html{}
+html{height:100%;}
 body{background:var(--bg-deep);color:var(--text-primary);font-family:var(--font);line-height:1.55;font-weight:500;overflow-x:hidden;}
 
 /* ═══════════════════════════════════════════
@@ -1018,9 +1018,11 @@ function showTab(id,btn){
   document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));
   document.getElementById('panel-'+id).classList.add('active');
   btn.classList.add('active');
-  document.documentElement.scrollTop=0;
-  document.body.scrollTop=0;
-  window.scrollTo(0,0);
+  setTimeout(function(){
+    window.scrollTo(0,0);
+    document.documentElement.scrollTop=0;
+    document.body.scrollTop=0;
+  },0);
 }
 
 /* ── MIXER ── */
