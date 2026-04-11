@@ -1026,15 +1026,24 @@ html, body {
 var sliderMessages=['Никогда, тело жило само по себе — отличная точка отсчёта','Почти никогда — скоро это изменится','Очень редко — осознанность только начинается','Иногда замечаете — хорошая база','Бывает — тело начинает говорить','Середина пути — хорошая база для развития','Чаще да, чем нет — уже неплохо','Довольно часто — теперь сделаем это привычкой','Часто и осознанно — курс поможет закрепить','Почти всегда — тонкая настройка впереди','Всегда, постоянно — превосходно!'];
 var scaleVal=5;
 function showTab(id,btn){
-  // Switch panel
+  // 1. Switch panel
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));
   document.getElementById('panel-'+id).classList.add('active');
   btn.classList.add('active');
-  // Scroll after render
+  // 2. After render: report new height, then scroll
   setTimeout(function(){
-    // Scroll inside iframe
-    try{ window.scrollTo(0,0); }catch(e){}
+    // Report new panel height to parent (fixes empty space)
+    reportHeight();
+    // Scroll parent Tilda page to top of iframe element
+    try{ window.parent.postMessage({type:'scrollToIframe'},'*'); }catch(e){}
+    try{ window.top.postMessage({type:'scrollToIframe'},'*'); }catch(e){}
+    // Standalone scroll (when opened directly in browser)
+    window.scrollTo(0,0);
+    document.documentElement.scrollTop=0;
+    document.body.scrollTop=0;
+  },80);
+}
     try{ document.documentElement.scrollTop=0; }catch(e){}
     try{ document.body.scrollTop=0; }catch(e){}
     // Tell parent page to scroll (works when embedded in Tilda/GitHub wrapper)
@@ -1268,6 +1277,25 @@ window.addEventListener('message',function(e){
     document.body.scrollTop=0;
   }
 });
+</script>
+
+<script>
+// Report height to parent so iframe can auto-resize (no internal scroll)
+function reportHeight(){
+  // Use page-wrap height for accuracy — avoids counting hidden panels
+  var wrap = document.querySelector('.page-wrap') || document.body;
+  var h = wrap.getBoundingClientRect().bottom + window.pageYOffset;
+  // Add small buffer
+  h = Math.ceil(h) + 40;
+  try{ window.parent.postMessage({type:'setHeight', height:h},'*'); }catch(e){}
+  try{ window.top.postMessage({type:'setHeight', height:h},'*'); }catch(e){}
+},'*'); }catch(e){}
+  try{ window.top.postMessage({type:'setHeight', height:h},'*'); }catch(e){}
+}
+// Report on load and on panel switch
+window.addEventListener('load', reportHeight);
+window.addEventListener('resize', reportHeight);
+setTimeout(reportHeight, 500);
 </script>
 </body>
 </html>
