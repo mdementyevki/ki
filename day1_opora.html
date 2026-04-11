@@ -1035,29 +1035,7 @@ function showTab(id,btn){
   document.documentElement.scrollTop=0;
   document.body.scrollTop=0;
 }
-    try{ window.top.postMessage({type:'scrollToIframe'},'*'); }catch(e){}
-    // Standalone scroll (when opened directly in browser)
-    window.scrollTo(0,0);
-    document.documentElement.scrollTop=0;
-    document.body.scrollTop=0;
-  },80);
-}
-    try{ document.documentElement.scrollTop=0; }catch(e){}
-    try{ document.body.scrollTop=0; }catch(e){}
-    // Tell parent page to scroll (works when embedded in Tilda/GitHub wrapper)
-    try{ window.parent.postMessage({type:'scrollTop',value:0},'*'); }catch(e){}
-    try{ window.top.postMessage({type:'scrollTop',value:0},'*'); }catch(e){}
-    // Fallback: scroll to page-header
-    var header=document.querySelector('.page-header');
-    if(header){ header.scrollIntoView({block:'start',behavior:'instant'}); }
-  },50);
-});}
-    window.scrollTo(0,0);
-    document.documentElement.scrollTop=0;
-    document.body.scrollTop=0;
-    try{window.top.scrollTo(0,0);}catch(e){}
-  },30);
-}
+
 
 /* ── MIXER ── */
 const MD=[
@@ -1267,41 +1245,13 @@ function showCpOk(){
 </script>
 
 <script>
-// Listen for scroll commands from child iframes (if this page embeds others)
-window.addEventListener('message',function(e){
-  if(e.data&&e.data.type==='scrollTop'){
-    window.scrollTo(0,0);
-    document.documentElement.scrollTop=0;
-    document.body.scrollTop=0;
-  }
-});
-</script>
-
-<script>
-// Report height to parent so iframe can auto-resize (no internal scroll)
 function reportHeight(){
-  var h = Math.max(
-    document.body.scrollHeight,
-    document.documentElement.scrollHeight
-  );
-  window.parent.postMessage({type:'setHeight', height: h + 50}, '*');
-}, '*');
-});
-  var header=document.querySelector('.page-header');
-  var tabs=document.querySelector('.tabs-sticky');
-  if(header) h+=header.offsetHeight;
-  if(tabs) h+=tabs.offsetHeight;
-  h+=100;
-  window.parent.postMessage({type:'setHeight',height:h},'*');
-},'*'); }catch(e){}
-  try{ window.top.postMessage({type:'setHeight', height:h},'*'); }catch(e){}
-},'*'); }catch(e){}
-  try{ window.top.postMessage({type:'setHeight', height:h},'*'); }catch(e){}
+  var h=Math.max(document.body.scrollHeight,document.documentElement.scrollHeight);
+  try{window.parent.postMessage({type:'setHeight',height:h+50},'*');}catch(e){}
 }
-// Report on load and on panel switch
-window.addEventListener('load', reportHeight);
-window.addEventListener('resize', reportHeight);
-setTimeout(reportHeight, 500);
+window.addEventListener('load',reportHeight);
+window.addEventListener('resize',reportHeight);
+setTimeout(reportHeight,500);
 </script>
 </body>
 </html>
