@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Кинетический интеллект — День 3: Объём и пространство</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap');
+
+/* ═══════════════════════════════════════════
+   DESIGN KIT TOKENS
+═══════════════════════════════════════════ */
+:root {
+  --bg-deep:#020e24; --bg-dark:#061528; --bg-card:#0a1e38; --bg-panel:#091a30;
+  --bg-light:#FFFFFF; --bg-light-warm:#F7F8FC; --bg-light-muted:#EEF1F8;
+  --blue:#0575a6; --blue-heading:#0093d5; --blue-bright:#00aaef;
+  --blue-glow:rgba(41,98,255,0.35); --blue-soft:rgba(5,117,166,0.15);
+  --blue-gradient:linear-gradient(135deg,#0575a6 0%,#0093d5 100%);
+  --blue-gradient-v:linear-gradient(180deg,#0093d5 0%,#0575a6 100%);
+  --coral:#d76060; --coral-dark:#972322;
+  --coral-gradient:linear-gradient(180deg,#d76060 0%,#972322 100%);
+  --coral-glow:rgba(215,96,96,0.25); --coral-soft:rgba(215,96,96,0.12);
+  --crimson:#7A1530; --crimson-dark:#4A0A1A; --crimson-glow:rgba(160,30,50,0.4);
+  --wine:#8B1A2B;
+  --green:#00920a; --green-soft:rgba(0,146,10,0.15);
+  --red:#ff1914; --red-soft:rgba(255,25,20,0.12);
+  --text-white:#FFFFFF; --text-primary:#E8ECF4;
+  --text-secondary:#8BA3C7; --text-muted:#4A6380;
+  --text-dark:#0A1628; --text-dark-secondary:#3A5070; --text-dark-muted:#7A8EA8;
+  --border:rgba(5,117,166,0.15); --border-accent:rgba(5,117,166,0.4);
+  --border-light:rgba(10,22,40,0.08);
+  --radius-xs:5px; --radius-sm:10px; --radius:20px; --radius-lg:40px;
+  --font:'Manrope',Arial,sans-serif;
+  --shadow-blue:0 0 50px rgba(41,98,255,0.35);
+  --shadow-card:0 4px 24px rgba(2,14,36,0.3);
+  --shadow-light:0 2px 16px rgba(10,22,40,0.06);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg-deep);color:var(--text-primary);font-family:var(--font);line-height:1.55;font-weight:500;overflow-x:hidden;}
+
+.page-wrap{max-width:960px;margin:0 auto;padding:0 20px 80px;}
+
+/* PAGE HEADER */
+.page-header {
+  padding:72px 0 52px;
+  border-bottom:1px solid var(--border);
+  position:relative; overflow:hidden;
+  background:
+    radial-gradient(ellipse at 20% 50%,var(--crimson-glow) 0%,transparent 50%),
+    radial-gradient(ellipse at 80% 60%,rgba(5,80,166,0.25) 0%,transparent 50%),
+    var(--bg-deep);
+  margin:0 -24px; padding:72px 24px 52px;
+}
+.page-header::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    radial-gradient(circle 2px at 75% 30%,rgba(0,170,239,0.5) 0%,transparent 100%),
+    radial-gradient(circle 3px at 82% 55%,rgba(0,147,213,0.4) 0%,transparent 100%),
+    radial-gradient(circle 2px at 70% 55%,rgba(0,170,239,0.35) 0%,transparent 100%);
+  pointer-events:none;
+}
+.page-header>*{position:relative;z-index:2;}
+.ph-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:3px;color:var(--text-muted);margin-bottom:12px;}
+.ph-title{font-size:56px;font-weight:800;text-transform:uppercase;letter-spacing:1px;line-height:1.05;color:var(--text-white);margin-bottom:8px;}
+.ph-title span{color:var(--blue-bright);}
+.crimson-line{display:block;width:120px;height:3px;background:var(--crimson);margin:16px 0 20px;}
+.ph-sub{font-size:15px;color:var(--text-secondary);max-width:540px;line-height:1.65;}
+.ph-badges{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;}
+
+/* STICKY TABS */
+.tabs-sticky{
+  position:sticky;top:0;z-index:100;
+  background:rgba(2,14,36,0.96);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  margin:0 -24px;
+}
+.tabs-inner{max-width:960px;margin:0 auto;padding:0 24px;display:flex;}
+.tab-btn{
+  flex:1; padding:15px 10px;
+  background:none; border:none; border-bottom:3px solid transparent;
+  font-family:var(--font); font-size:12px; font-weight:700;
+  text-transform:uppercase; letter-spacing:1.5px;
+  color:var(--text-muted); cursor:pointer;
+  transition:color .2s,border-color .2s;
+}
+.tab-btn.active{color:var(--blue-bright);border-bottom-color:var(--blue-bright);}
+.tab-btn:hover:not(.active){color:var(--text-secondary);}
+.panel{display:none;padding-top:40px;}
+.panel.active{display:block;}
+
+/* SECTION HEADERS */
+.section-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:3px;color:var(--blue-bright);margin-bottom:8px;}
+.section-title{font-size:36px;font-weight:800;text-transform:uppercase;color:var(--text-white);line-height:1.1;margin-bottom:4px;margin-top:52px;}
+.section-title+.crimson-line{margin-bottom:32px;}
+.subsection-title{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-secondary);margin-bottom:18px;}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:6px;padding:6px 16px;border-radius:20px;font-size:13px;font-weight:700;}
+.badge.blue{background:var(--blue-soft);color:var(--blue-bright);border:1px solid rgba(5,117,166,0.3);}
+.badge.coral{background:var(--coral-soft);color:var(--coral);border:1px solid rgba(215,96,96,0.2);}
+.badge.green{background:var(--green-soft);color:#4ade80;border:1px solid rgba(0,146,10,0.25);}
+.badge.wine{background:rgba(122,21,48,0.15);color:#c04060;border:1px solid rgba(122,21,48,0.25);}
+.badge.dark{background:var(--bg-panel);color:var(--text-secondary);border:1px solid var(--border);}
+.day-badge{display:inline-flex;align-items:center;gap:6px;padding:8px 20px;border-radius:var(--radius-lg);font-size:14px;font-weight:800;background:var(--blue);color:white;letter-spacing:.5px;text-transform:uppercase;}
+.badge-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;}
+
+/* CARDS */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;margin-bottom:32px;}
+.card{background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border);padding:28px;transition:border-color .2s,box-shadow .2s;}
+.card:hover{border-color:var(--border-accent);box-shadow:var(--shadow-blue);}
+.card.accent-card{border-color:var(--blue);background:linear-gradient(135deg,var(--bg-card) 0%,rgba(5,117,166,0.08) 100%);}
+.card.coral-card{border-color:var(--coral-dark);background:linear-gradient(135deg,var(--bg-card) 0%,rgba(215,96,96,0.06) 100%);}
+.card h3{font-size:18px;font-weight:800;color:var(--text-white);margin-bottom:8px;text-transform:uppercase;line-height:1.2;}
+.card p{font-size:14px;color:var(--text-secondary);line-height:1.6;}
+
+/* ELEMENT CARD */
+.element-card{background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border-accent);overflow:hidden;margin-bottom:24px;position:relative;}
+.element-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--blue-gradient);}
+.element-card-header{padding:24px 28px 16px;display:flex;align-items:flex-start;gap:16px;}
+.element-number{width:48px;height:48px;border-radius:var(--radius-sm);background:var(--wine);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:white;flex-shrink:0;}
+.element-info h3{font-size:22px;font-weight:800;color:var(--text-white);margin-bottom:4px;text-transform:uppercase;line-height:1.1;}
+.element-info .element-subtitle{font-size:13px;color:var(--text-secondary);}
+.element-card-body{padding:0 28px 20px;}
+.element-card-body p{font-size:15px;color:var(--text-secondary);line-height:1.7;}
+.element-tags{padding:0 28px 20px;display:flex;gap:8px;flex-wrap:wrap;}
+
+/* QUOTE BLOCK */
+.quote-block{border-left:3px solid var(--blue);padding:24px 28px;background:var(--bg-card);border-radius:0 var(--radius) var(--radius) 0;margin-bottom:24px;}
+.quote-block.coral-quote{border-left-color:var(--coral);}
+.quote-block .quote-text{font-size:18px;font-weight:500;color:var(--text-primary);line-height:1.7;font-style:italic;margin-bottom:12px;}
+.quote-block .quote-author{font-size:13px;color:var(--text-muted);font-weight:700;}
+
+/* BIG INSIGHT */
+.big-insight{text-align:center;padding:48px;background:linear-gradient(135deg,var(--bg-card) 0%,rgba(5,117,166,0.08) 100%);border-radius:var(--radius);border:1px solid var(--border-accent);margin-bottom:24px;}
+.big-insight .insight-text{font-size:36px;font-weight:800;color:var(--text-white);line-height:1.2;margin-bottom:12px;text-transform:uppercase;}
+.big-insight .insight-text span{color:var(--blue-bright);}
+.big-insight .insight-sub{font-size:14px;color:var(--text-secondary);}
+
+/* LISTS */
+.list-container{background:var(--bg-card);border-radius:var(--radius);padding:28px;border:1px solid var(--border);margin-bottom:24px;}
+.list-container.light{background:var(--bg-light);border:1px solid var(--border-light);box-shadow:var(--shadow-light);}
+.ki-list{list-style:none;}
+.ki-list li{display:flex;align-items:flex-start;gap:12px;padding:10px 0;font-size:15px;font-weight:500;line-height:1.5;border-bottom:1px solid var(--border);}
+.ki-list li:last-child{border-bottom:none;}
+.list-container.light .ki-list li{color:var(--text-dark);border-bottom-color:var(--border-light);}
+.list-num{width:32px;height:32px;min-width:32px;border-radius:var(--radius-sm);background:var(--wine);color:white;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;}
+.list-check{width:22px;height:22px;min-width:22px;border-radius:6px;border:2px solid var(--blue);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;}
+.list-check.checked{background:var(--blue);}
+.list-bullet{width:8px;height:8px;min-width:8px;border-radius:50%;background:var(--blue);margin-top:7px;}
+.list-bullet.coral{background:var(--coral);}
+.mb24{margin-bottom:24px;}
+
+/* COMPARE TABLE */
+.compare-table{width:100%;border-collapse:separate;border-spacing:0;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);margin-bottom:32px;}
+.compare-table th{background:var(--bg-card);padding:16px 20px;text-align:left;font-size:14px;font-weight:800;color:var(--text-white);border-bottom:2px solid var(--blue);text-transform:uppercase;letter-spacing:1px;}
+.compare-table th.highlight-col{background:var(--blue-soft);color:var(--blue-bright);border-bottom-color:var(--blue-bright);}
+.compare-table td{padding:14px 20px;font-size:14px;color:var(--text-secondary);border-bottom:1px solid var(--border);background:var(--bg-dark);}
+.compare-table td.highlight-col{background:rgba(5,117,166,0.06);color:var(--text-primary);}
+.compare-table tr:last-child td{border-bottom:none;}
+
+/* STATES (3 варианта) */
+.states-nav{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.st-btn{flex:1;min-width:110px;padding:10px 14px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--bg-panel);font-family:var(--font);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);cursor:pointer;transition:all .2s;}
+.st-btn:hover{border-color:var(--blue-heading);color:var(--text-secondary);}
+.st-btn.on{background:var(--blue-soft);border-color:var(--blue);color:var(--blue-bright);}
+.st-btn.on.def{background:var(--coral-soft);border-color:var(--coral);color:var(--coral);}
+.st-btn.on.exc{background:rgba(122,21,48,.15);border-color:#a04060;color:#c06080;}
+.st-btn.on.mid{background:var(--green-soft);border-color:var(--green);color:#4ade80;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.st-panel{display:none;background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border);padding:24px 28px;margin-bottom:20px;overflow:hidden;}
+.st-panel.show{display:block;animation:fadeUp .2s ease both;}
+.st-panel .st-icon{font-size:26px;margin-bottom:10px;}
+.st-panel h4{font-size:16px;font-weight:800;text-transform:uppercase;margin-bottom:8px;}
+.st-panel p{font-size:15px;color:var(--text-secondary);line-height:1.7;}
+.st-panel-inner{display:flex;gap:18px;align-items:flex-start;}
+.st-photo{width:120px;min-width:120px;border-radius:12px;object-fit:cover;aspect-ratio:3/5;border:1px solid rgba(5,117,166,.2);}
+.st-impression{margin-top:12px;padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;color:var(--text-secondary);}
+
+/* GRID 2 */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;}
+
+/* PHOTO PLACEHOLDER */
+.photo-placeholder{background:var(--bg-card);border:1.5px dashed var(--border-accent);border-radius:var(--radius);min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;transition:border-color .2s;}
+.photo-placeholder:hover{border-color:var(--blue-bright);}
+.photo-icon{font-size:32px;opacity:.5;}
+.photo-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);text-align:center;line-height:1.4;}
+.photo-placeholder.tall{min-height:320px;}
+.photo-placeholder.profile{aspect-ratio:9/16;min-height:unset;}
+
+/* TRY-NOW */
+.try-now-block{background:var(--bg-card);border:1.5px solid var(--border-accent);border-radius:var(--radius);padding:24px 28px;margin-bottom:24px;}
+.tn-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2.5px;color:var(--blue-bright);margin-bottom:10px;}
+.try-now-block p{font-size:15px;color:var(--text-secondary);line-height:1.7;margin-bottom:16px;}
+.tn-btn{padding:12px 28px;border-radius:var(--radius-lg);border:none;background:linear-gradient(135deg,#00920a,#007a0a);color:white;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;transition:opacity .2s;}
+.tn-btn:hover{opacity:.85;}
+.tn-btn.done{background:var(--bg-panel);color:var(--text-muted);cursor:default;}
+.tn-reply{margin-top:14px;padding:14px 18px;border-radius:var(--radius-sm);background:var(--green-soft);border:1px solid rgba(0,146,10,.25);font-size:14px;color:var(--text-secondary);line-height:1.6;display:none;}
+.tn-reply.show{display:block;animation:fadeUp .25s ease;}
+
+/* TAP Q */
+.tap-q-wrap{background:var(--bg-card);border:1.5px solid var(--border-accent);border-radius:var(--radius);padding:24px 28px;margin-bottom:20px;}
+.tap-q-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2.5px;color:var(--blue-bright);margin-bottom:10px;}
+.tap-q-text{font-size:16px;font-weight:700;color:var(--text-white);line-height:1.5;margin-bottom:14px;}
+.tap-options{display:flex;flex-direction:column;gap:8px;}
+.tap-opt{padding:12px 16px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--bg-panel);font-family:var(--font);font-size:14px;font-weight:600;color:var(--text-secondary);cursor:pointer;text-align:left;transition:all .15s;}
+.tap-opt:hover{border-color:var(--blue);color:var(--text-primary);}
+.tap-opt.chosen{background:var(--blue-soft);border-color:var(--blue);color:var(--blue-bright);}
+.tap-result{margin-top:12px;padding:12px 16px;border-radius:var(--radius-sm);background:var(--blue-soft);border:1px solid var(--border-accent);font-size:14px;color:var(--text-secondary);line-height:1.6;display:none;animation:fadeUp .2s ease;}
+.tap-result.show{display:block;}
+
+/* CHECKLIST / WALL TEST */
+.wall-test-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+.wall-point{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px 20px;display:flex;gap:12px;align-items:flex-start;}
+.wall-point-num{width:28px;height:28px;min-width:28px;border-radius:50%;background:var(--blue);color:white;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;}
+.wall-point-text{font-size:14px;color:var(--text-secondary);line-height:1.5;}
+.wall-point-text strong{color:var(--text-white);}
+
+/* INSIGHT BLOCK (inline callout) */
+.insight-block{border-left:4px solid var(--blue);padding:16px 20px;background:var(--blue-soft);border-radius:0 var(--radius-sm) var(--radius-sm) 0;margin-bottom:20px;}
+.insight-block.coral{border-left-color:var(--coral);background:var(--coral-soft);}
+.insight-block.green{border-left-color:var(--green);background:var(--green-soft);}
+.insight-block-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:var(--blue-bright);margin-bottom:6px;}
+.insight-block.coral .insight-block-label{color:var(--coral);}
+.insight-block.green .insight-block-label{color:#4ade80;}
+.insight-block p{font-size:14px;font-weight:600;color:var(--text-primary);line-height:1.6;}
+
+/* TIMELINE / VERTICAL SPINE */
+.spine-list{position:relative;padding-left:32px;margin-bottom:24px;}
+.spine-list::before{content:'';position:absolute;left:10px;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--blue),rgba(5,117,166,0));border-radius:2px;}
+.spine-item{position:relative;margin-bottom:20px;}
+.spine-item::before{content:'';position:absolute;left:-26px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--blue);border:2px solid var(--bg-deep);}
+.spine-item h5{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--blue-bright);margin-bottom:4px;}
+.spine-item p{font-size:14px;color:var(--text-secondary);line-height:1.6;}
+
+/* CTA BRIDGE */
+.cta-section{
+  background:
+    radial-gradient(ellipse at 50% 80%,var(--coral-glow) 0%,transparent 50%),
+    radial-gradient(ellipse at 10% 40%,rgba(5,80,166,0.18) 0%,transparent 55%),
+    var(--bg-card);
+  border:1px solid rgba(215,96,96,0.2);
+  border-radius:var(--radius);
+  padding:40px;
+  text-align:center;
+  margin-bottom:32px;
+  margin-top:40px;
+}
+.cta-section h3{font-size:28px;font-weight:800;color:var(--text-white);text-transform:uppercase;margin-bottom:12px;}
+.cta-section p{font-size:15px;color:var(--text-secondary);margin-bottom:24px;max-width:480px;margin-left:auto;margin-right:auto;}
+.btn{padding:14px 32px;border-radius:var(--radius-lg);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;border:none;transition:opacity .2s;}
+.btn-primary{background:var(--blue-gradient);color:white;}
+.btn-primary:hover{opacity:.85;}
+.btn-row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px;}
+
+/* WORKBOOK */
+.workbook{background:var(--bg-light);border-radius:var(--radius);border:1px solid var(--border-light);overflow:hidden;margin-bottom:32px;color:var(--text-dark);box-shadow:var(--shadow-light);}
+.workbook-header{padding:20px 28px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between;background:var(--bg-light-warm);}
+.workbook-title{font-size:15px;font-weight:700;color:var(--text-dark);display:flex;align-items:center;gap:10px;}
+.workbook-day{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--blue);color:white;text-transform:uppercase;letter-spacing:1px;}
+.workbook-day.coral-day{background:var(--coral-dark);}
+.workbook-body{padding:28px;}
+.workbook-field{margin-bottom:20px;}
+.workbook-field label{display:block;font-size:13px;font-weight:700;color:var(--blue);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;}
+.workbook-field textarea{width:100%;min-height:68px;border:1.5px solid #d0d8e8;border-radius:var(--radius-sm);padding:12px 16px;font-family:var(--font);font-size:14px;color:var(--text-dark);background:var(--bg-light-warm);resize:vertical;outline:none;transition:border-color .2s;}
+.workbook-field textarea:focus{border-color:var(--blue);}
+.workbook-field textarea::placeholder{color:var(--text-dark-muted);font-style:italic;}
+.checklist-item{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border-light);cursor:pointer;}
+.checklist-item:last-child{border-bottom:none;}
+.check-box{width:22px;height:22px;min-width:22px;border-radius:6px;border:2px solid #b0c8d8;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.check-box.done{background:var(--blue);border-color:var(--blue);}
+.check-box.done::after{content:'✓';color:white;font-size:12px;font-weight:800;}
+.check-text{font-size:14px;color:var(--text-dark);line-height:1.5;}
+.check-text.done-text{text-decoration:line-through;color:var(--text-dark-muted);}
+
+/* SCALE */
+.scale-slider-wrap{background:var(--bg-light-warm);border-radius:var(--radius-sm);padding:16px;}
+
+/* EXPORT */
+.export-box{background:var(--bg-light-warm);border:1.5px dashed #b0c4d8;border-radius:var(--radius);padding:22px 26px;margin-top:20px;color:var(--text-dark);}
+.export-box h4{font-size:14px;font-weight:800;text-transform:uppercase;color:var(--text-dark);margin-bottom:7px;}
+.export-box p{font-size:13px;color:var(--text-dark-secondary);margin-bottom:14px;line-height:1.6;}
+.cp-ok{font-size:13px;color:var(--green);font-weight:700;margin-top:7px;display:none;}
+.cp-ok.show{display:block;}
+.field-hint{font-size:12px;color:var(--text-dark-muted);margin-top:5px;font-style:italic;}
+.timer-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--blue-bright);padding:4px 12px;background:var(--blue-soft);border:1px solid var(--border-accent);border-radius:20px;margin-bottom:14px;}
+
+/* VERTICAL CARDS (три состояния объёма) */
+.vc-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+  align-items: stretch;
+}
+.vc-card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1.5px solid var(--border);
+  display: flex;
+  flex-direction: column;
+}
+.vc-card.vc-def { border-color: rgba(215,96,96,.3); }
+.vc-card.vc-mid { border-color: rgba(5,117,166,.4); box-shadow: 0 0 24px rgba(5,117,166,.12); }
+.vc-card.vc-exc { border-color: rgba(122,21,48,.3); }
+
+.vc-photo {
+  width: 100%;
+  overflow: hidden;
+  height: 420px;
+}
+.vc-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+.vc-photo .photo-placeholder,
+.vc-photo .photo-placeholder.tall {
+  height: 100%;
+  min-height: 420px;
+}
+
+.vc-body {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+.vc-head { display: flex; align-items: center; gap: 10px; }
+.vc-icon { font-size: 20px; flex-shrink: 0; }
+.vc-title { font-size: 14px; font-weight: 800; text-transform: uppercase; line-height: 1.2; margin: 0; }
+.vc-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin: 0; }
+
+.vc-params {
+  background: rgba(255,255,255,.03);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.vc-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--border);
+  gap: 8px;
+}
+.vc-row:last-child { border-bottom: none; }
+.vc-lbl {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.vc-val {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: right;
+  line-height: 1.3;
+}
+.vc-val-mid { color: var(--blue-bright); font-weight: 600; }
+
+.vc-impression {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+}
+.vc-imp-def { background: var(--coral-soft); color: var(--coral); border: 1px solid rgba(215,96,96,.2); }
+.vc-imp-mid { background: var(--green-soft); color: #4ade80; border: 1px solid rgba(0,146,10,.2); }
+.vc-imp-exc { background: rgba(122,21,48,.12); color: #c06080; border: 1px solid rgba(122,21,48,.2); }
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .ph-title{font-size:36px;}
+  .page-header{padding:48px 20px 40px;}
+  .section-title{font-size:26px;}
+  .card-grid{grid-template-columns:1fr;}
+  .grid2{grid-template-columns:1fr;}
+  .wall-test-grid{grid-template-columns:1fr;}
+  .tabs-inner{overflow-x:auto;}
+  .tab-btn{min-width:80px;font-size:11px;}
+  .big-insight{padding:28px 20px;}
+  .big-insight .insight-text{font-size:24px;}
+  .st-panel-inner{flex-direction:column;}
+  .st-photo{width:100%;min-width:unset;aspect-ratio:2/3;}
+  .vc-grid { grid-template-columns: repeat(2, 1fr); }
+  .vc-photo img { height: 100%; }
+.vc-photo .photo-placeholder,
+.vc-photo .photo-placeholder.tall {
+  height: 100%;
+  min-height: 420px;
+}
+}
+@media(max-width:480px){
+  .vc-grid { grid-template-columns: 1fr; }
+  .vc-photo img { height: 100%; }
+.vc-photo .photo-placeholder,
+.vc-photo .photo-placeholder.tall {
+  height: 100%;
+  min-height: 420px;
+}
+  .workbook-body { padding: 20px 16px; }
+  .workbook-header { padding: 16px 20px; }
+  .export-box { padding: 18px 16px; }
+  .wall-test-grid { grid-template-columns: 1fr; }
+}
+@media print{
+  .tabs-sticky{position:static;}
+  .panel{display:block!important;}
+  body{background:white!important;color:black!important;}
+}
+
+.grid2 .photo-placeholder,
+.grid2 .photo-placeholder.photo-filled {
+  width: 100%;
+}
+
+.spine-list { overflow: hidden; }
+
+.element-card { overflow: hidden; word-break: break-word; }
+
+.card, .try-now-block, .tap-q-wrap, .workbook {
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.cta-section { overflow: hidden; }
+
+</style>
+</head>
+<body>
+
+<div class="page-wrap">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div class="ph-label">Кинетический интеллект · Неделя 1 · День 3</div>
+    <h1 class="ph-title">ОБЪЁМ<br><span style="color:var(--blue-bright)">И ПРОСТРАНСТВО</span></h1>
+    <div class="crimson-line"></div>
+  </div>
+  <!-- /page-header -->
+
+  <!-- STICKY TABS -->
+  <div class="tabs-sticky">
+    <div class="tabs-inner">
+      <button class="tab-btn active" onclick="showTab('theory',this)">Теория</button>
+      <button class="tab-btn" onclick="showTab('practice',this)">Практика</button>
+      <button class="tab-btn" onclick="showTab('task',this)">Самоанализ</button>
+    </div>
+  </div>
+
+  <!-- PANEL THEORY -->
+  <div id="panel-theory" class="panel active">
+
+    <!-- BIG INSIGHT -->
+    <div class="big-insight" style="background:linear-gradient(135deg,var(--bg-card) 0%,rgba(180,60,40,0.10) 100%);border-color:rgba(215,96,96,0.25);">
+      <div class="insight-text">Сжатое тело →<br><span style="color:var(--coral);">тревожный мозг</span> →<br>уступающее поведение</div>
+      <div class="crimson-line" style="margin:16px auto;"></div>
+      <div class="insight-sub">Объём — это третий элемент кинетического фундамента: сколько пространства вы разрешаете себе занимать</div>
+    </div>
+
+    <!-- SECTION: ПОЧЕМУ ОБЪЁМ ТАК ВАЖЕН -->
+    <h2 class="section-title">ПОЧЕМУ ОБЪЁМ ТАК ВАЖЕН</h2>
+    <div class="crimson-line"></div>
+
+    <!-- ELEMENT CARD: ЭКСПЕРИМЕНТ -->
+    <div class="element-card">
+      <div class="element-card-header">
+        <div class="element-number">🔬</div>
+        <div class="element-info">
+          <h3>ЭКСПЕРИМЕНТ: СЛЕПЫЕ ОТ РОЖДЕНИЯ</h3>
+          <div class="element-subtitle">Поза победителя зашита в нервную систему</div>
+        </div>
+      </div>
+      <div class="element-card-body">
+        <p>Исследователи просили слепых от рождения людей представить, что они выиграли чемпионат мира. Эти люди, которые никогда не видели победителей, раскидывали руки, запрокидывали голову, раскрывали грудную клетку — поза победителя зашита в нас на уровне нервной системы. Проигравший же сжимается — тоже без обучения. Это эволюционная программа.</p>
+      </div>
+      <div class="element-tags">
+        <span class="badge blue">Поливагальная теория</span>
+        <span class="badge coral">Проксемика</span>
+        <span class="badge dark">Эдвард Холл, 1966</span>
+      </div>
+    </div>
+
+    <!-- CARD GRID: 4 CARDS -->
+    <div class="card-grid">
+      <div class="card accent-card">
+        <h3>🧬 БИОЛОГИЧЕСКИЙ СИГНАЛ</h3>
+        <p>Любой живой организм стремится расти наружу. Увеличение объёма — сигнал жизненной силы. Уменьшение — сигнал угрозы или слабости. Это работает и для людей.</p>
+      </div>
+      <div class="card">
+        <h3>🧠 ПОЛИВАГАЛЬНАЯ ТЕОРИЯ</h3>
+        <p>Под стрессом тело автоматически сжимается — реакция замирания. Плечи вверх, локти прижимаются, грудная клетка закрывается. Срабатывает на совещании так же, как при встрече с хищником.</p>
+      </div>
+      <div class="card coral-card">
+        <h3>📡 ОБРАТНЫЙ СИГНАЛ</h3>
+        <p>Расправленная грудная клетка отправляет мозгу обратный сигнал: «всё в порядке, я здесь по праву». Это разрывает автоматическую цепочку тревоги. Состояние меняется за секунды.</p>
+      </div>
+      <div class="card">
+        <h3>🎙️ ПОБОЧНЫЙ БОНУС</h3>
+        <p>Когда раскрываете грудную клетку — лёгким больше пространства, дыхание глубже. Голос получает резонанс и звучит ниже, увереннее. Это не отдельный навык — это приятный побочный эффект.</p>
+      </div>
+    </div>
+
+    <!-- SECTION: ТРИ СОСТОЯНИЯ ОБЪЁМА -->
+    <h2 class="section-title">ТРИ СОСТОЯНИЯ ОБЪЁМА</h2>
+    <div class="crimson-line"></div>
+
+    <!-- VC GRID: 3 CARDS -->
+    <div class="vc-grid">
+      <!-- CARD 1: НЕДОСТАТОК -->
+      <div class="vc-card vc-def">
+        <div class="vc-photo">
+          <div class="photo-placeholder tall" style="border:none;margin:0;border-radius:0;"><div class="photo-icon">📷</div></div>
+        </div>
+        <div class="vc-body">
+          <div class="vc-head">
+            <span class="vc-icon">📉</span>
+          </div>
+          <h4 class="vc-title" style="color:var(--coral);">Недостаток — сжатие</h4>
+          <p class="vc-desc">Плечи вперёд и вверх, локти прижаты к корпусу, руки скрещены или спрятаны. Грудная клетка закрыта. Сидит на краешке стула. Старается занять как можно меньше пространства.</p>
+          <div class="vc-params">
+            <div class="vc-row">
+              <span class="vc-lbl">Плечи</span>
+              <span class="vc-val">Подтянуты вперёд</span>
+            </div>
+            <div class="vc-row">
+              <span class="vc-lbl">Локти</span>
+              <span class="vc-val">Прижаты к корпусу</span>
+            </div>
+            <div class="vc-row">
+              <span class="vc-lbl">Руки</span>
+              <span class="vc-val">Скрещены / спрятаны</span>
+            </div>
+            <div class="vc-row">
+              <span class="vc-lbl">Грудная клетка</span>
+              <span class="vc-val">Закрыта</span>
+            </div>
+            <div class="vc-row">
+              <span class="vc-lbl">Посадка</span>
+              <span class="vc-val">На краю стула</span>
+            </div>
+          </div>
+          <div class="vc-impression vc-imp-def">💬 Неуверенность, тревожность, готовность уступить. Окружающие подсознательно дистанцируются.</div>
+        </div>
+      </div>
+
+      <!-- CARD 2: СРЕДНИЙ -->
+      <div class="vc-card vc-mid">
+        <div class="vc-photo">
+          <div class="photo-placeholder tall" style="border:none;margin:0;border-radius:0;"><div class="photo-icon">📷</div></div>
+        </div>
+        <div class="vc-body">
+          <div class="vc-head">
+            <span class="vc-icon">✅</span>
+          </div>
+          <h4 class="vc-title" style="color:var(--blue-bright);">Средний — своё место</h4>
+          <p class="vc-desc">Расправленная грудная клетка, свободные руки, человек занимает ровно своё место — не больше и не меньше. Сидит полноценно на стуле. Локти свободны. Плечи опущены и раскрыты.</p>
+          <div class="vc-params">
+            <div class="vc-row">
+              <span class="vc-lbl">Плечи</span>
+              <span class="vc-val vc-val-mid">Опущены, раскрыты</span>
+            </div>
+            <div class="vc-row">
+              <span class="vc-lbl">Локти</span>
+              <span class="vc-val vc-val-mid">Свободны, воздух</span>
+            </div>
+            <div class="vc-row">
+              <span class="vc-lbl">Руки</span>
+              <span class="vc-val vc-val-mid">Свободно висят</span>
+            </div>
+            <div class="vc-row">
+              <span class="vc-lbl">Грудная клетка</span>
+              <span class="vc-val vc-val-mid">Открыта</span>
+            </div>
+            <div class="vc-row">
+              <span class="vc-lbl">Посадка</span>
+              <span class="vc-val vc-val-mid">На всём стуле</span>
+            </div>
+          </div>
+          <div class="vc-impression vc-imp-mid">💬 Спокойствие, уверенность, равная позиция. Рядом комфортно — ни давления, ни тревоги.</div>
+        </div>
+      </div>
+
+      <!-- CARD 3: ИЗБЫТОК -->
+      <div class="vc-card vc-exc">
+        <div class="vc-photo">
+          <div class="photo-placeholder tall" style="border:none;margin:0;border-radius:0;"><div class="photo-icon">📷</div></div>
+        </div>
+        <div class="vc-body">
+          <div class="vc-head">
+            <span class="vc-icon">📈</span>
+          </div>
+          <h4 class="vc-title" style="color:#c06080;">Избыток — экспансия</h4>
+          <p class="vc-desc">Раскинутые руки, широко расставленные ноги, человек заполняет собой пространство. Адаптирует пространство под себя. На сцене — уместно, за столом переговоров — может считываться как давление.</p>
+          <div class="vc-params">
+            <div class="vc-row">
+              <span class="vc-lbl">Плечи</span>
+              <span class="vc-val">Раскрыты широко</span>
+            </div>
+            <div class="vc-row">
+              <span class="vc-lbl">Локти</span>
+              <span class="vc-val">Захватывают территорию</span>
+            </div>
+            <div class="vc-row">
+              <span class="vc-lbl">Руки</span>
+              <span class="vc-val">Раскинуты</span>
+            </div>
+            <div class="vc-row">
+              <span class="vc-lbl">Грудная клетка</span>
+              <span class="vc-val">Максимально открыта</span>
+            </div>
+            <div class="vc-row">
+              <span class="vc-lbl">Посадка</span>
+              <span class="vc-val">Откинулся / экспансия</span>
+            </div>
+          </div>
+          <div class="vc-impression vc-imp-exc">💬 Доминирование, сила. Уместно на сцене. В переговорах — может считываться как агрессия.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INSIGHT BLOCK: КЛЮЧЕВОЕ ПОНИМАНИЕ -->
+    <div class="insight-block coral">
+      <div class="insight-block-label">КЛЮЧЕВОЕ ПОНИМАНИЕ</div>
+      <p>Нет универсального ответа «чем больше — тем лучше». Объём — это инструмент, который подбирается под контекст. Важна уместность.</p>
+    </div>
+
+    <!-- SECTION: ГДЕ И КАК ПРИМЕНЯТЬ -->
+    <h2 class="section-title">ГДЕ И КАК ПРИМЕНЯТЬ</h2>
+    <div class="crimson-line"></div>
+
+    <!-- SPINE LIST -->
+    <div class="spine-list">
+      <div class="spine-item">
+        <h5>ПЕРЕГОВОРЫ И ДЕЛОВЫЕ ВСТРЕЧИ</h5>
+        <p>Средний объём — базовый. Вы занимаете своё место, не давите, но и не уступаете. Если нужно усилить позицию — чуть добавляете: шире локти, больше жестов. Грань между уверенностью и давлением тонкая.</p>
+      </div>
+      <div class="spine-item">
+        <h5>ПУБЛИЧНЫЕ ВЫСТУПЛЕНИЯ</h5>
+        <p>На сцене объём нужен больше обычного. Зал большой — тело должно «заполнить» пространство. Прижатые руки создают ощущение страха. Широкие жесты, свободное перемещение — вот когда избыток объёма уместен.</p>
+      </div>
+      <div class="spine-item">
+        <h5>КАМЕРА И ОНЛАЙН</h5>
+        <p>Парадокс: пространство маленькое, но объём всё равно нужен. Расправленные плечи, свободные руки в рамках кадра дают ощущение присутствия. Зажатость в кадре утрируется — камера усиливает всё.</p>
+      </div>
+      <div class="spine-item">
+        <h5>ЛИЧНАЯ ЖИЗНЬ И СВИДАНИЯ</h5>
+        <p>Расслабленный, открытый объём транслирует: «мне комфортно, мне хорошо рядом с тобой». Сжатый — «я нервничаю». Считывается моментально, особенно на близкой дистанции.</p>
+      </div>
+    </div>
+
+    <!-- TRY-NOW BLOCK -->
+    <div class="try-now-block">
+      <div class="tn-label">ПОПРОБУЙТЕ ПРЯМО СЕЙЧАС</div>
+      <p>Встаньте. Примите минимальный объём — плечи вперёд, локти прижаты. Побудьте 15 секунд. Что внутри? Теперь — максимальный: раскиньте руки, грудная клетка открыта. 15 секунд. Теперь — средний: плечи отпустите, локти свободны, ноги на ширине плеч. Заметьте разницу.</p>
+      <button id="tnb1" class="tn-btn" onclick="tnDone('tnb1','tnr1')">Почувствовал(а) разницу ✓</button>
+      <div id="tnr1" class="tn-reply"><strong>Отлично!</strong> Вы только что прожили три состояния объёма в теле. В практике — попробуете каждый на видео.</div>
+    </div>
+
+    <!-- QUOTE BLOCK -->
+    <div class="quote-block coral-quote">
+      <div class="quote-text">«Чаще всего проблема объёма — это именно вопрос разрешения. Не физических возможностей. Вы уже стали руководителем, экспертом — а тело всё ещё сидит на краешке стула, как в школе.»</div>
+    </div>
+
+    <!-- CTA SECTION -->
+    <div class="cta-section">
+      <h3>ПЕРЕХОДИТЕ К ПРАКТИКЕ</h3>
+      <p>Запишите три состояния объёма — стоя и сидя. Посмотрите, где ваш «как обычно» и куда он ближе.</p>
+      <button class="btn btn-primary" onclick="showTab('practice', document.querySelectorAll('.tab-btn')[1])">Перейти к практике →</button>
+    </div>
+
+  </div>
+  <!-- /panel-theory -->
+
+  <!-- PANEL PRACTICE -->
+  <div id="panel-practice" class="panel">
+
+    <!-- SECTION TITLE -->
+    <h2 class="section-title">ПРАКТИКА: СКОЛЬКО МЕСТА ВЫ ЗАНИМАЕТЕ</h2>
+    <div class="crimson-line"></div>
+
+    <!-- INSIGHT BLOCK: ФОРМАТ УРОКА -->
+    <div class="insight-block green">
+      <div class="insight-block-label">ФОРМАТ УРОКА</div>
+      <p>12 минут. Вам понадобится место, где можно свободно раскинуть руки, и стул рядом. Одно видео, восемь фрагментов: четыре стоя и четыре сидя.</p>
+    </div>
+
+    <!-- LIST CONTAINER: ИНСТРУКЦИЯ ПО ЗАПИСИ -->
+    <div class="list-container">
+      <ul class="ki-list">
+        <li><div class="list-num">1</div><div>Поставьте телефон так, чтобы вас было видно в полный рост — стоя и сидя</div></li>
+        <li><div class="list-num">2</div><div>Скажите: «Меня зовут [имя], день третий, объём»</div></li>
+        <li><div class="list-num">3</div><div>Снимайте одним видео без остановок — четыре варианта стоя, затем четыре сидя</div></li>
+        <li><div class="list-num">4</div><div>В каждом варианте — называйте его: «как обычно», «минимальный», «максимальный», «средний»</div></li>
+        <li><div class="list-num">5</div><div>В каждой позе — 5–7 секунд. Посмотрите на запись после и заметьте разницу</div></li>
+      </ul>
+    </div>
+
+    <!-- TAP-Q: ВИДЕО СТОЯ ГОТОВО? -->
+    <div class="tap-q-wrap">
+      <div class="tap-q-label">✅ ОТМЕТЬТЕ, КОГДА ГОТОВО</div>
+      <div class="tap-q-text">Видео стоя записано?</div>
+      <div class="tap-options">
+        <button class="tap-opt" onclick="tapPick(this,'tr-v1','done')">✓ Да, записал(а)!</button>
+        <button class="tap-opt" onclick="tapPick(this,'tr-v1','later')">⏸ Запишу позже</button>
+      </div>
+      <div id="tr-v1" class="tap-result"></div>
+    </div>
+
+    <!-- INSIGHT BLOCK: ТЕПЕРЬ - СИДЯ -->
+    <div class="insight-block">
+      <div class="insight-block-label">ТЕПЕРЬ — СИДЯ</div>
+      <p>Та же последовательность — но на стуле. Объём на стуле видят коллеги, клиенты, собеседники в зуме.</p>
+    </div>
+
+    <!-- TAP-Q: ВИДЕО СИДЯ ГОТОВО? -->
+    <div class="tap-q-wrap">
+      <div class="tap-q-label">✅ ОТМЕТЬТЕ, КОГДА ГОТОВО</div>
+      <div class="tap-q-text">Видео сидя записано?</div>
+      <div class="tap-options">
+        <button class="tap-opt" onclick="tapPick(this,'tr-v2','done')">✓ Да, записал(а)!</button>
+        <button class="tap-opt" onclick="tapPick(this,'tr-v2','later')">⏸ Запишу позже</button>
+      </div>
+      <div id="tr-v2" class="tap-result"></div>
+    </div>
+
+    <!-- INSIGHT BLOCK: ЗАДАНИЕ НА ЖИЗНЬ -->
+    <div class="insight-block green">
+      <div class="insight-block-label">ЗАДАНИЕ НА ЖИЗНЬ</div>
+      <p>Фокус — ближайшая встреча. Перед встречей: вспомните средний объём, расправьте плечи. Во время: заметьте свой объём по умолчанию и добавьте 10%. После: запишите, что изменилось.</p>
+    </div>
+
+    <!-- CTA: ПЕРЕЙТИ К САМОАНАЛИЗУ -->
+    <div class="cta-section">
+      <h3>ЗАПИШИТЕ СВОИ НАБЛЮДЕНИЯ</h3>
+      <p>Самое важное — это понимание. Переходите к анализу и заполните рабочую тетрадь.</p>
+      <button class="btn btn-primary" onclick="showTab('task', document.querySelectorAll('.tab-btn')[2])">Перейти к самоанализу →</button>
+    </div>
+
+  </div>
+  <!-- /panel-practice -->
+
+  <!-- PANEL TASK (SELF-ANALYSIS) -->
+  <div id="panel-task" class="panel">
+
+    <!-- SECTION TITLE -->
+    <h2 class="section-title">САМОАНАЛИЗ</h2>
+    <div class="crimson-line"></div>
+
+    <!-- WORKBOOK 1: ВИДЕО СТОЯ -->
+    <div class="workbook">
+      <div class="workbook-header">
+        <div class="workbook-title">📹 ВИДЕО СТОЯ</div>
+      </div>
+      <div class="workbook-body">
+        <div class="workbook-field">
+          <label for="q1">Где ваш «как обычно» по объёму?</label>
+          <textarea id="q1" placeholder="Плечи чуть вперёд? Руки прижаты? Опишите..."></textarea>
+        </div>
+        <div class="workbook-field">
+          <label for="q2">Что вы почувствовали в минимальном объёме?</label>
+          <textarea id="q2" placeholder="Тревогу? Желание исчезнуть? Дискомфорт?..."></textarea>
+        </div>
+        <div class="workbook-field">
+          <label for="q3">Что изменилось в среднем объёме?</label>
+          <textarea id="q3" placeholder="Стало спокойнее? Дыхание свободнее?..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- WORKBOOK 2: ВИДЕО СИДЯ -->
+    <div class="workbook">
+      <div class="workbook-header">
+        <div class="workbook-title">🪑 ВИДЕО СИДЯ</div>
+      </div>
+      <div class="workbook-body">
+        <div class="workbook-field">
+          <label for="q4">Где вы обычно сидите — на всём стуле или на краешке?</label>
+          <textarea id="q4" placeholder="Опишите свою привычную посадку..."></textarea>
+        </div>
+        <div class="workbook-field">
+          <label for="q5">Как изменилось ощущение в среднем объёме сидя?</label>
+          <textarea id="q5" placeholder="Спина? Дыхание? Ощущение пространства?..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- WORKBOOK 3: ЗАДАНИЕ НА ЖИЗНЬ -->
+    <div class="workbook">
+      <div class="workbook-header">
+        <div class="workbook-title">🎯 ЗАДАНИЕ НА ЖИЗНЬ</div>
+      </div>
+      <div class="workbook-body">
+        <div class="workbook-field">
+          <label for="q6">Как прошла ближайшая встреча?</label>
+          <textarea id="q6" placeholder="Что вы заметили в своём объёме? Изменилось ли что-то?..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- WORKBOOK 4: SCALE -->
+    <div class="workbook">
+      <div class="workbook-header">
+        <div class="workbook-title">📊 МОЙ ОБЪЁМ СЕГОДНЯ</div>
+      </div>
+      <div class="workbook-body">
+        <div class="workbook-field">
+          <label>Насколько осознанно вы управляете своим объёмом прямо сейчас?</label>
+          <div class="scale-slider-wrap">
+            <input type="range" id="scaleSlider" min="0" max="10" value="5" oninput="updateSlider(this.value)" style="width:100%;cursor:pointer;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;gap:10px;">
+              <span id="sliderValue" style="font-size:20px;font-weight:800;color:var(--text-dark);">5</span>
+              <span id="sliderLabel" style="flex:1;font-size:13px;color:var(--text-dark-secondary);text-align:right;"></span>
+            </div>
+          </div>
+          <div class="field-hint">0 — тело жило само по себе, 10 — осознанно управляю каждую минуту</div>
+        </div>
+      </div>
+    </div>
+
+  <!-- Экспорт -->
+  <div class="export-box">
+    <h4>💾 Сохранить ваши ответы</h4>
+    <p>Ваши записи хранятся только здесь, в браузере. Скопируйте одним нажатием и вставьте в удобное место — заметки, Google Docs, Notion. Или распечатайте для тетради.</p>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="copyAnswers()">📋 Скопировать ответы</button>
+    </div>
+    <div class="cp-ok" id="cpOk">✓ Скопировано! Вставьте (Ctrl+V / Cmd+V)</div>
+  </div>
+
+  </div>
+  <!-- /panel-task -->
+
+</div>
+<!-- /page-wrap -->
+
+<!-- COPY MODAL -->
+<div id="copyModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:999;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:16px;padding:24px;max-width:600px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.3);">
+    <div style="font-size:14px;font-weight:700;color:#0A1628;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">Ваши ответы — выделите и скопируйте</div>
+    <textarea id="copyModalText" style="width:100%;height:320px;border:1.5px solid #d0d8e8;border-radius:10px;padding:12px;font-family:monospace;font-size:13px;color:#0A1628;resize:none;outline:none;" readonly></textarea>
+    <div style="display:flex;gap:10px;margin-top:14px;justify-content:flex-end;">
+      <button onclick="document.getElementById('copyModal').style.display='none'" style="padding:10px 20px;border-radius:40px;border:1.5px solid #d0d8e8;background:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;color:#0A1628;">Закрыть</button>
+      <button onclick="document.getElementById('copyModalText').select();document.execCommand('copy');showCpOk();document.getElementById('copyModal').style.display='none';" style="padding:10px 20px;border-radius:40px;border:none;background:linear-gradient(180deg,#d76060,#972322);color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;">Скопировать</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── SLIDER MESSAGES (Day 3) ── */
+var sliderMessages=['Тело жило само по себе — отличная точка отсчёта','Почти не замечали — скоро это изменится','Очень редко — осознанность объёма только начинается','Иногда замечаете — хорошая база','Бывает — тело начинает занимать место','Середина пути — хорошее начало','Чаще осознаёте, чем нет — неплохо','Объём уже работает на вас','Часто и осознанно — курс поможет закрепить','Почти всегда контролируете — тонкая настройка впереди','Всегда, постоянно — превосходно!'];
+var scaleVal=5;
+
+/* ── TABS ── */
+function showTab(id,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ── TRY-NOW ── */
+function tnDone(btnId,replyId){
+  const btn=document.getElementById(btnId);
+  const r=document.getElementById(replyId);
+  if(btn){btn.classList.add('done');btn.textContent='✓ Готово!';btn.onclick=null;}
+  if(r)r.classList.add('show');
+}
+
+/* ── TAP ── */
+const TAP_REPLIES={
+  done:'<strong>Отлично!</strong> Самое важное — вы это сделали. Переходите к следующему заданию.',
+  later:'<strong>Хорошо.</strong> Возвращайтесь — ответы здесь сохранятся.'
+};
+function tapPick(btn,resId,key){
+  btn.closest('.tap-q-wrap').querySelectorAll('.tap-opt').forEach(b=>b.classList.remove('chosen'));
+  btn.classList.add('chosen');
+  const r=document.getElementById(resId);
+  if(r){r.innerHTML=TAP_REPLIES[key];r.classList.add('show');}
+}
+
+/* ── SCALE SLIDER ── */
+function updateSlider(v){
+  scaleVal=parseInt(v);
+  const el=document.getElementById('sliderValue');
+  const lb=document.getElementById('sliderLabel');
+  if(el) el.textContent=v;
+  if(lb) lb.textContent=sliderMessages[scaleVal];
+  const colours=['#d76060','#c06060','#a06060','#807080','#607090','#0575a6','#0575a6','#0070a0','#007a60','#008040','#00920a'];
+  const valEl=document.getElementById('sliderValue');
+  if(valEl) valEl.style.color=colours[scaleVal];
+}
+
+/* ── COPY & REPORT ── */
+function buildReport(){
+  var d = '—', r = '→';
+  var q1el=document.getElementById('q1');
+  var q2el=document.getElementById('q2');
+  var q3el=document.getElementById('q3');
+  var q4el=document.getElementById('q4');
+  var q5el=document.getElementById('q5');
+  var q6el=document.getElementById('q6');
+  var a1=q1el&&q1el.value.trim()?q1el.value.trim():d;
+  var a2=q2el&&q2el.value.trim()?q2el.value.trim():d;
+  var a3=q3el&&q3el.value.trim()?q3el.value.trim():d;
+  var a4=q4el&&q4el.value.trim()?q4el.value.trim():d;
+  var a5=q5el&&q5el.value.trim()?q5el.value.trim():d;
+  var a6=q6el&&q6el.value.trim()?q6el.value.trim():d;
+  var sc=scaleVal+'/10 '+d+' '+sliderMessages[scaleVal];
+  var n='\n';
+  return (
+    'КИНЕТИЧЕСКИЙ ИНТЕЛЛЕКТ '+d+' День 3: Объём и пространство'+n+
+    'Самоанализ'+n+
+    '================================'+n+n+
+    'ВИДЕО СТОЯ'+n+n+
+    'Где ваш «как обычно» по объёму?'+n+
+    r+' '+a1+n+n+
+    'Что вы почувствовали в минимальном объёме?'+n+
+    r+' '+a2+n+n+
+    'Что изменилось в среднем объёме?'+n+
+    r+' '+a3+n+n+
+    'ВИДЕО СИДЯ'+n+n+
+    'Где вы обычно сидите — на всём стуле или на краешке?'+n+
+    r+' '+a4+n+n+
+    'Как изменилось ощущение в среднем объёме сидя?'+n+
+    r+' '+a5+n+n+
+    'ЗАДАНИЕ НА ЖИЗНЬ'+n+n+
+    'Как прошла ближайшая встреча?'+n+
+    r+' '+a6+n+n+
+    'ШКАЛА'+n+
+    r+' '+sc+n+
+    '================================'
+  );
+}
+
+function copyAnswers(){
+  var text=buildReport();
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(showCpOk,function(){ showModal(text); });
+  } else {
+    showModal(text);
+  }
+}
+
+function showModal(text){
+  var modal=document.getElementById('copyModal');
+  var ta=document.getElementById('copyModalText');
+  if(modal&&ta){
+    ta.value=text;
+    modal.style.display='flex';
+    ta.focus();
+    ta.select();
+  }
+}
+
+function showCpOk(){
+  var c=document.getElementById('cpOk');
+  if(c){c.classList.add('show');setTimeout(function(){c.classList.remove('show');},4000);}
+}
+</script>
+
+</body>
+</html>
